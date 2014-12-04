@@ -10,7 +10,7 @@ resources:
       user_data_format: RAW
       user_data: |
         #!/bin/bash
-        wget bootstrap.saltstack.com -O boostrap.sh
+        wget bootstrap.saltstack.com -O bootsrap.sh
         chmod +x bootstrap.sh
         ./bootstrap.sh -A syn1.salt.dev1.crowdrise.io -U
         salt-call state.highstate
