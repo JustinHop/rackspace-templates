@@ -17,4 +17,4 @@ resources:
 outputs:
   public_ip:
     description: public IP address of the deployed compute instance
-    value: { get_attr: [compute_instance, accessIPv4] }
+    value: { get_attr: [shawnWombatDev, accessIPv4] }
