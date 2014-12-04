@@ -65,24 +65,19 @@ parameters:
                     - 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
     flavor:
         label: Server Size
-        description: |
-          Rackspace Cloud Server flavor to use. The size is based on the amount of
-          RAM for the provisioned server.
+        description: "Rackspace Cloud Server flavor to use."
         type: string
         default: 4 GB General Purpose v1
         constraints:
             -
-                description: |
-                   Must be a valid Rackspace Cloud Server flavor for the region you have
-                   selected to deploy into.
+                description: 'Must be a valid Rackspace Cloud Server flavor'
                 allowed_values:
-                   - 2 GB General Purpose v1
-                   - 4 GB General Purpose v1
-                   - 8 GB General Purpose v1
-                   - 1GB Standard Instance
-                   - 2GB Standard Instance
-                   - 4GB Standard Instance
-
+                    - 2 GB General Purpose v1
+                    - 4 GB General Purpose v1
+                    - 8 GB General Purpose v1
+                    - 1GB Standard Instance
+                    - 2GB Standard Instance
+                    - 4GB Standard Instance
     load_balancer_hostname:
         default: http.master-crowdrise.dev1.crowdrise.io
         label: 'Load Balancer Hostname'
