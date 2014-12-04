@@ -22,7 +22,6 @@ parameter_groups:
             - server_hostname
             - http_port
             - https_port
-            - memcached_size
             - sslcert
             - sslkey
             - sslcacert
