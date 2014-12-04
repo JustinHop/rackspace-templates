@@ -1,0 +1,14 @@
+heat_template_version: 2013-05-23
+ 
+resources:
+  compute_instance:  
+    type: "OS::Nova::Server"
+    properties:
+      flavor: 2 GB General
+      image: Ubuntu 14.10 (Utopic Unicorn) (PVHVM)
+      name: Single Server Stack
+       
+outputs:
+  public_ip:
+    description: public IP address of the deployed compute instance
+    value: { get_attr: [compute_instance, accessIPv4] }      
