@@ -7,13 +7,6 @@ parameter_groups:
         label: 'Web Server Settings'
     -
         parameters:
-            - db_flavor
-            - db_size
-            - db_user
-            - datastore_version
-        label: 'Database Settings'
-    -
-        parameters:
             - url
             - revision
             - packages
@@ -33,7 +26,6 @@ parameter_groups:
             - sslcert
             - sslkey
             - sslcacert
-            - database_name
         label: 'Details'
 heat_template_version: '2013-05-23'
 description: "Heat template to deploy a load balancer and multiple servers running a PHP\napp under Apache.\n"
@@ -51,16 +43,6 @@ parameters:
             -
                 allowed_pattern: '^http\d+\.\w+-\w+\.dev1\.crowdrise\.io$'
                 description: "http\\d+\\.\\$BRANCH-\\$REPO\\.dev1\\.crowdrise\\.io"
-    datastore_version:
-        default: '5.6'
-        label: 'MySQL Version'
-        type: string
-        description: "Required: Version of MySQL to run on the Cloud Databases instance.\n"
-        constraints:
-            -
-                allowed_values:
-                    - '5.6'
-                    - '5.1'
     https_port:
         default: 443
         type: string
@@ -71,21 +53,6 @@ parameters:
         type: string
         description: 'SSL Certificate'
         label: 'SSL Certificate'
-    db_flavor:
-        default: '4GB Instance'
-        label: 'Cloud Database Size'
-        type: string
-        description: "Required: Rackspace Cloud Database Flavor. Size is based on amount of RAM\nfor the provisioned instance.\n"
-        constraints:
-            -
-                description: "Must be a valid Rackspace Cloud Database flavor for the region you have\nselected to deploy into.\n"
-                allowed_values:
-                    - '512MB Instance'
-                    - '1GB Instance'
-                    - '2GB Instance'
-                    - '4GB Instance'
-                    - '8GB Instance'
-                    - '16GB Instance'
     image:
         default: 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
         label: 'Operating System'
@@ -111,39 +78,10 @@ parameters:
                 allowed_pattern: '^http\.\w+-\w+\.dev1\.crowdrise\.io$'
                 description: "http\\d+\\.\\$BRANCH-\\$REPO\\.dev1\\.crowdrise\\.io"
     repo:
-        default: ""
+        default: "https://crowdrise.git.beanstalkapp.com/squirrel.git"
         type: string
         description: "Optional: URL to your git repository. Use the https syntax for public\nrepositories, use git@ syntax for private repositories.\n"
         label: 'Git Repository'
-    memcached_size:
-        default: 128
-        type: number
-        description: 'Memcached memory size limit'
-        label: 'Memcached Memory Limit'
-    flavor:
-        default: '4 GB General Purpose v1'
-        label: 'Server Size'
-        type: string
-        description: "Required: Rackspace Cloud Server flavor to use. The size is based on the\namount of RAM for the provisioned server.\n"
-        constraints:
-            -
-                description: "Must be a valid Rackspace Cloud Server flavor for the region you have\nselected to deploy into.\n"
-                allowed_values:
-                    - '1 GB General Purpose v1'
-                    - '2 GB General Purpose v1'
-                    - '4 GB General Purpose v1'
-                    - '8 GB General Purpose v1'
-                    - '15 GB I/O v1'
-                    - '30 GB I/O v1'
-                    - '60 GB I/O v1'
-                    - '90 GB Performance'
-                    - '512MB Standard Instance'
-                    - '1GB Standard Instance'
-                    - '2GB Standard Instance'
-                    - '4GB Standard Instance'
-                    - '8GB Standard Instance'
-                    - '15GB Standard Instance'
-                    - '30GB Standard Instance'
     packages:
         default: ""
         type: string
@@ -160,23 +98,13 @@ parameters:
                     max: 25
                     min: 1
                 description: 'Must be between 1 and 25 servers.'
-    db_size:
-        default: 10
-        label: 'Database Size'
-        type: number
-        description: "Database instance size, in GB. min 1, max 300\n"
-        constraints:
-            -
-                range:
-                    max: 300
-                    min: 1
     http_port:
         default: 80
         type: string
         description: 'HTTP Port'
         label: 'HTTP Port'
     url:
-        default: 'http://example.com'
+        default: 'http://http1.shawn-squirrel.dev1.crowdrise.io'
         type: string
         description: 'URL for your site'
         label: 'Site Domain'
@@ -185,13 +113,8 @@ parameters:
         type: string
         description: 'SSL Key'
         label: 'SSL Key'
-    database_name:
-        default: app_data
-        type: string
-        description: "Required: Name of your Cloud Database\n"
-        label: 'Database Name'
     destination:
-        default: /var/www/vhosts/application
+        default: /var/www/trunk
         type: string
         description: 'Path to setup your application on your servers.'
         label: 'Site Path'
@@ -200,27 +123,18 @@ parameters:
         type: string
         description: 'Location of child template for provisioning web nodes.'
         label: 'Child Template'
-    db_user:
-        default: db_user
-        label: 'Database Username'
-        type: string
-        description: "Required: Username for the database.\n"
-        constraints:
-            -
-                allowed_pattern: '^(.){1,16}$'
-                description: "Must be shorter than 16 characters, this is due to MySQL's maximum\nusername length.\n"
     sslcacert:
         default: false
         type: string
         description: 'SSL CA Certificate'
         label: 'SSL CA Certificate'
     deploy_key:
-        default: ""
+        default: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDv25Zra5+EYVnMs3ohqO0x/X+teVmcNy++rw4PNfMno5HbEcIyM1tEGgiwEyWvROB5SRBVG6B976A6YYllRQxwpbIOTrWLfJy0khXLPIoDrE+fCOnC6ylun6zNvtqND/jvUd5K4Mu0vrkzR6jOtulwi1MbON7Ad5E8GY4tvA/dTDJGN1Gmc9WaoVDCPgjuHEpDpOUZVNDQ4l2dVR8LlAdTAVL1SWhSwX43KdX4vT7N7F++HRjZJxSyKNyHeP0TWRvxYcGRw9B9s5dlQEHllWKqBQf0mkZNVwQ3xhG7GwqmL9d7rT9t93KGt+8r8WSyGibjareNTJ9AqIQnSEJ12E5P crgit-repo@beanstalkapp.com"
         type: string
         description: "Optional: If you specified a private repository, provide your private\ndeploy key here.\n"
         label: 'Git Deploy Key'
     public:
-        default: /
+        default: /content
         type: string
         description: "The public facing directory of your application relative to the\ndestination.\n"
         label: 'Public Directory'
@@ -230,12 +144,6 @@ parameters:
         description: "Optional: Git Branch/Ref to deploy. Default: HEAD\n"
         label: Revision
 outputs:
-    database_hostname:
-        description: 'Cloud Database Host'
-        value:
-            get_attr:
-                - service_db
-                - hostname
     private_key:
         description: 'SSH Private Key'
         value:
@@ -254,26 +162,7 @@ outputs:
             get_attr:
                 - php_setup
                 - public_ip
-    database_password:
-        description: 'Cloud Database Password'
-        value:
-            get_attr:
-                - database_password
-                - value
-    database_name:
-        description: 'Database Name'
-        value:
-            get_param: database_name
-    database_user:
-        description: 'Cloud Database User'
-        value:
-            get_param: db_user
 resources:
-    database_password:
-        type: 'OS::Heat::RandomString'
-        properties:
-            length: 16
-            sequence: lettersdigits
     load_balancer:
         depends_on:
             - php_setup
@@ -339,32 +228,6 @@ resources:
                         get_param: public
                     revision:
                         get_param: revision
-    service_db:
-        type: 'OS::Trove::Instance'
-        properties:
-            size:
-                get_param: db_size
-            users:
-                -
-                    password:
-                        get_attr:
-                            - database_password
-                            - value
-                    name:
-                        get_param: db_user
-                    databases:
-                        -
-                            get_param: database_name
-            databases:
-                -
-                    name:
-                        get_param: database_name
-            datastore_type: mysql
-            flavor:
-                get_param: db_flavor
-            datastore_version:
-                get_param: datastore_version
-            name: app_db
     ssh_key:
         type: 'OS::Nova::KeyPair'
         properties:
