@@ -4,7 +4,7 @@ parameter_groups:
             - image
             - flavor
             - server_count
-        label: 'Server Settings'
+        label: 'Web Server Settings'
     -
         parameters:
             - db_flavor
@@ -39,7 +39,7 @@ heat_template_version: '2013-05-23'
 description: "Heat template to deploy a load balancer and multiple servers running a PHP\napp under Apache.\n"
 parameters:
     server_hostname:
-        default: php
+        default: http1.master-crowdrise.dev1.crowdrise.io
         label: 'Server Name'
         type: string
         description: 'Server Name'
@@ -49,8 +49,8 @@ parameters:
                     max: 64
                     min: 1
             -
-                allowed_pattern: '^[a-zA-Z][a-zA-Z0-9-]*$'
-                description: "Must begin with a letter and contain only alphanumeric characters.\n"
+                allowed_pattern: '^http\d+\.\w+-\w+\.dev1\.crowdrise\.io$'
+                description: "http\d+\.$BRANCH-$REPO\.dev1\.crowdrise\.io"
     datastore_version:
         default: '5.6'
         label: 'MySQL Version'
@@ -72,7 +72,7 @@ parameters:
         description: 'SSL Certificate'
         label: 'SSL Certificate'
     db_flavor:
-        default: '1GB Instance'
+        default: '4GB Instance'
         label: 'Cloud Database Size'
         type: string
         description: "Required: Rackspace Cloud Database Flavor. Size is based on amount of RAM\nfor the provisioned instance.\n"
@@ -87,7 +87,7 @@ parameters:
                     - '8GB Instance'
                     - '16GB Instance'
     image:
-        default: 'Ubuntu 12.04 LTS (Precise Pangolin) (PVHVM)'
+        default: 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
         label: 'Operating System'
         type: string
         description: "Required: Server image used for all servers that are created as a part of\nthis deployment.\n"
@@ -95,9 +95,10 @@ parameters:
             -
                 description: 'Must be a supported operating system.'
                 allowed_values:
-                    - 'Ubuntu 12.04 LTS (Precise Pangolin) (PVHVM)'
+                    - 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
+                    - 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
     load_balancer_hostname:
-        default: PHP-Load-Balancer
+        default: http.master-crowdrise.dev1.crowdrise.io
         label: 'Load Balancer Hostname'
         type: string
         description: 'Hostname for the Load Balancer'
@@ -107,8 +108,8 @@ parameters:
                     max: 64
                     min: 1
             -
-                allowed_pattern: '^[a-zA-Z][a-zA-Z0-9-]*$'
-                description: "Must begin with a letter and contain only alphanumeric characters.\n"
+                allowed_pattern: '^http\.\w+-\w+\.dev1\.crowdrise\.io$'
+                description: "http\.$BRANCH-$REPO\.dev1\.crowdrise\.io"
     repo:
         default: ""
         type: string
