@@ -7,10 +7,14 @@ resources:
       flavor: 4 GB General Purpose v1
       image: Ubuntu 14.10 (Utopic Unicorn) (PVHVM)
       name: shawnWombatDev
-      user_data: 
-        - "#!/bin/bash\nwget bootstrap.saltstack.com -O boostrap.sh\nchmod +x bootstrap.sh\n./bootstrap.sh -A syn1.salt.dev1.crowdrise.io -U\nsalt-call state.highstate\n"
+      user_data: |
+        #!/bin/bash
+        wget bootstrap.saltstack.com -O boostrap.sh
+        chmod +x bootstrap.sh
+        ./bootstrap.sh -A syn1.salt.dev1.crowdrise.io -U
+        salt-call state.highstate
 
 outputs:
   public_ip:
     description: public IP address of the deployed compute instance
-    value: { get_attr: [compute_instance, accessIPv4] }      
+    value: { get_attr: [compute_instance, accessIPv4] }
