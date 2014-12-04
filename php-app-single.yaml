@@ -20,9 +20,10 @@ parameters:
       Server image used for all servers that are created as a part of this
       deployment
     type: string
-    default: Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)
+    default: base-dev-01
     constraints:
     - allowed_values:
+      - base-dev-01
       - Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)
       - Ubuntu 14.10 (Utopic Unicorn) (PVHVM)
       description: Must be a supported operating system.
@@ -136,7 +137,7 @@ resources:
       flavor: { get_param: flavor }
       image: { get_param: image }
       key_name: { get_param: ssh_keypair_name }
-      user_data: "#!/bin/bash\napt-get update\napt-get install python-software-properties -y\nadd-apt-repository ppa:saltstack/salt -y\napt-get update\napt-get install salt-minion -y\nsed -i 's/^#master: salt$/master: syn1.salt.dev1.crowdrise.io/' /etc/salt/minion\n/etc/init.d/salt-minion restart\nsalt-call state.highstate\n"
+      user_data: "salt-call state.highstate\n"
       metadata:
         rax-heat: { get_param: stack_id }
 
