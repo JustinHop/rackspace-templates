@@ -72,16 +72,17 @@ parameters:
         type: string
         default: 4 GB General Purpose v1
         constraints:
-        - allowed_values:
-          - 2 GB General Purpose v1
-          - 4 GB General Purpose v1
-          - 8 GB General Purpose v1
-          - 1GB Standard Instance
-          - 2GB Standard Instance
-          - 4GB Standard Instance
-          description: |
-            Must be a valid Rackspace Cloud Server flavor for the region you have
-            selected to deploy into.
+            -
+                description: |
+                  Must be a valid Rackspace Cloud Server flavor for the region you have
+                  selected to deploy into.
+               - allowed_values:
+                 - 2 GB General Purpose v1
+                 - 4 GB General Purpose v1
+                 - 8 GB General Purpose v1
+                 - 1GB Standard Instance
+                 - 2GB Standard Instance
+                 - 4GB Standard Instance
 
     load_balancer_hostname:
         default: http.master-crowdrise.dev1.crowdrise.io
