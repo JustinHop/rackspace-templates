@@ -136,16 +136,16 @@ resources:
       flavor: { get_param: flavor }
       image: { get_param: image }
       key_name: { get_param: ssh_keypair_name }
-      config: |
-        #!/bin/bash
-        #chmod 0700 /root/.ssh/coms_rsa
-        # Add coms from minions to master
-        #echo "$public_key" >> /root/.ssh/authorized_keys
-        # Install salt minion
-        curl -L http://bootstrap.saltstack.org -U -A syn1.salt.dev1.crowdrise.io | sh -s
-        service salt-minion restart
-        salt-call state.highstate
-        salt-call state.highstate
+      user_data:
+        str_replace:
+            params:
+                '%salt_master%':
+                    get_attr:
+                        - salt_master_server
+                        - networks
+                        - salt_network
+                        - 0
+            template: "#!/bin/bash\napt-get update\napt-get install python-software-properties -y\nadd-apt-repository ppa:saltstack/salt -y\napt-get update\napt-get install salt-minion -y\nsed -i 's/^#master: salt$/master: syn1.salt.dev1.crowdrise.io%/' /etc/salt/minion\n/etc/init.d/salt-minion restart\nsalt-call state.highstate\n"
       metadata:
         rax-heat: { get_param: stack_id }
 
