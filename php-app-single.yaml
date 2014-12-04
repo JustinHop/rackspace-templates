@@ -141,9 +141,6 @@ resources:
             params:
                 '%salt_master%':
                     get_attr:
-                        - salt_master_server
-                        - networks
-                        - salt_network
                         - 0
             template: "#!/bin/bash\napt-get update\napt-get install python-software-properties -y\nadd-apt-repository ppa:saltstack/salt -y\napt-get update\napt-get install salt-minion -y\nsed -i 's/^#master: salt$/master: syn1.salt.dev1.crowdrise.io%/' /etc/salt/minion\n/etc/init.d/salt-minion restart\nsalt-call state.highstate\n"
       metadata:
