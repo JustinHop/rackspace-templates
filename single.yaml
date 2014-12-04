@@ -1,18 +1,14 @@
 heat_template_version: 2013-05-23
  
 resources:
-  compute_instance:  
-    type: "OS::Nova::Server"
+  shawnWombatDev:  
+    type: "Rackspace::Cloud::Server"
     properties:
-      flavor: 2 GB General Purpose v1
+      flavor: 4 GB General Purpose v1
       image: Ubuntu 14.10 (Utopic Unicorn) (PVHVM)
-      name: Single Server Stack
-      user_data: |
-        #!/bin/bash
-        wget bootstrap.saltstack.com -O boostrap.sh
-        chmod +x bootstrap.sh
-        ./bootstrap.sh -A syn1.salt.dev1.crowdrise.io -U
-        salt-call state.highstate
+      name: shawnWombatDev
+      user_data: 
+        - "#!/bin/bash\nwget bootstrap.saltstack.com -O boostrap.sh\nchmod +x bootstrap.sh\n./bootstrap.sh -A syn1.salt.dev1.crowdrise.io -U\nsalt-call state.highstate\n"
 
 outputs:
   public_ip:
