@@ -34,7 +34,7 @@ parameter_groups:
             - sslkey
             - sslcacert
             - database_name
-        label: rax-dev-params
+        label: 'Details'
 heat_template_version: '2013-05-23'
 description: "Heat template to deploy a load balancer and multiple servers running a PHP\napp under Apache.\n"
 parameters:
@@ -196,7 +196,7 @@ parameters:
         description: 'Path to setup your application on your servers.'
         label: 'Site Path'
     child_template:
-        default: 'https://raw.github.com/rackspace-orchestration-templates/php-app-clouddb/master/php-app-single.yaml'
+        default: 'https://raw.github.com/JustinHop/rackspace-templates/master/php-app-single.yaml'
         type: string
         description: 'Location of child template for provisioning web nodes.'
         label: 'Child Template'
