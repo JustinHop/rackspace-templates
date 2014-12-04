@@ -191,6 +191,27 @@ resources:
                    "recipe[rax_php_app]",
                    "recipe[php-ioncube]"]
 
+  config-salt-minion:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: script
+      config: |
+        #!/bin/bash
+        chmod 0700 /root/.ssh/coms_rsa
+
+        # Add coms from minions to master
+        #echo "$public_key" >> /root/.ssh/authorized_keys
+
+        # Install salt minion
+        curl -L http://bootstrap.saltstack.org | sh -s
+        echo master: ext.salt.crowdrise.io >> /etc/salt/minion
+
+        service salt-minion restart
+
+        salt-call state.highstate
+
+        salt-call state.highstate
+
 
 outputs:
 
