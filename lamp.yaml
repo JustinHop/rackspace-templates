@@ -30,7 +30,7 @@ heat_template_version: '2013-05-23'
 description: "Heat template to deploy a load balancer and multiple servers running a PHP\napp under Apache.\n"
 parameters:
     server_hostname:
-        default: http1.master-crowdrise.dev1.crowdrise.io
+        default: http-master-crowdrise
         label: 'Server Name'
         type: string
         description: 'Server Name'
@@ -40,7 +40,6 @@ parameters:
                     max: 64
                     min: 1
             -
-                allowed_pattern: '^http\d+\.\w+-\w+\.dev1\.crowdrise\.io$'
                 description: "http\\d+\\.\\$BRANCH-\\$REPO\\.dev1\\.crowdrise\\.io"
     https_port:
         default: 443
@@ -79,7 +78,7 @@ parameters:
                     - 2GB Standard Instance
                     - 4GB Standard Instance
     load_balancer_hostname:
-        default: http.master-crowdrise.dev1.crowdrise.io
+        default: httplb-master-crowdrise
         label: 'Load Balancer Hostname'
         type: string
         description: 'Hostname for the Load Balancer'
@@ -89,7 +88,6 @@ parameters:
                     max: 64
                     min: 1
             -
-                allowed_pattern: '^http\.\w+-\w+\.dev1\.crowdrise\.io$'
                 description: "http\\d+\\.\\$BRANCH-\\$REPO\\.dev1\\.crowdrise\\.io"
     repo:
         default: "https://crowdrise.git.beanstalkapp.com/squirrel.git"
