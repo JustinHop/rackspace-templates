@@ -50,7 +50,7 @@ parameters:
                     min: 1
             -
                 allowed_pattern: '^http\d+\.\w+-\w+\.dev1\.crowdrise\.io$'
-                description: "http\d+\.$BRANCH-$REPO\.dev1\.crowdrise\.io"
+                description: "http\\d+\\.\\$BRANCH-\\$REPO\\.dev1\\.crowdrise\\.io"
     datastore_version:
         default: '5.6'
         label: 'MySQL Version'
@@ -109,7 +109,7 @@ parameters:
                     min: 1
             -
                 allowed_pattern: '^http\.\w+-\w+\.dev1\.crowdrise\.io$'
-                description: "http\.$BRANCH-$REPO\.dev1\.crowdrise\.io"
+                description: "http\\d+\\.\\$BRANCH-\\$REPO\\.dev1\\.crowdrise\\.io"
     repo:
         default: ""
         type: string
