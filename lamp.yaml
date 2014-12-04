@@ -40,6 +40,7 @@ parameters:
                     max: 64
                     min: 1
             -
+                allowed_pattern: '[a-zA-Z][a-zA-Z0-9]*'
                 description: "http\\d+\\.\\$BRANCH-\\$REPO\\.dev1\\.crowdrise\\.io"
     https_port:
         default: 443
@@ -78,7 +79,7 @@ parameters:
                     - 2GB Standard Instance
                     - 4GB Standard Instance
     load_balancer_hostname:
-        default: httplb-master-crowdrise
+        default: http.master-crowdrise.dev1.crowdrise.io
         label: 'Load Balancer Hostname'
         type: string
         description: 'Hostname for the Load Balancer'
@@ -88,6 +89,7 @@ parameters:
                     max: 64
                     min: 1
             -
+                allowed_pattern: '[a-zA-Z][a-zA-Z0-9]*'
                 description: "http\\d+\\.\\$BRANCH-\\$REPO\\.dev1\\.crowdrise\\.io"
     repo:
         default: "https://crowdrise.git.beanstalkapp.com/squirrel.git"
