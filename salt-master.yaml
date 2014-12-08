@@ -7,11 +7,12 @@ parameters:
   server_name:
     description: the instance name
     type: string
-    default: Wordpress Webserver
+    default: master1.salt.dev1.crowdrise.io
 
   key_name:
-    description: Nova keypair name for ssh access to the server
+    description: Nova keypair name
     type: string
+    default: Hop_RSA_2014-11-11
  
 resources:
   salt-master:  
@@ -25,12 +26,10 @@ resources:
         str_replace:
           template: |
             #!/bin/bash -v
-            cd /root
-            wget bootstrap.saltstack.com -O bootstrap.sh
-            chmod +x bootstrap.sh
-            ./bootstrap.sh -A ext.salt.crowdrise.io -U -i %server_name%
-            salt-call state.highstate
-            salt-call state.highstate
+            curl -L https://bootstrap.saltstack.com | sudo sh -s -- -A ext.salt.crowdrise.io -U -i %server_name%
+            sudo salt-call state.highstate || true
+            sudo salt-call state.highstate
+            true
           params:
             "%server_name%": { get_param: server_name }
 
