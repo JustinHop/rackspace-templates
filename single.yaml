@@ -1,7 +1,26 @@
 heat_template_version: 2013-05-23
- 
+
+description: Single System
+
+paramaters:
+
+  instance_image:
+    type: string
+    label: Image OS
+    description: Operating system for VM
+    default: Ubuntu 14.10 (Utopic Unicorn) (PVHVM)
+    constraints:
+      - allowed_values:
+        - Ubuntu 14.10 (Utopic Unicorn) (PVHVM)
+        - Ubuntu 14.10 (Utopic Unicorn)
+        - Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)
+        - Ubuntu 14.04 LTS (Trusty Tahr)
+        - Ubuntu 12.04 LTS (Precise Pangolin) (PVHVM)
+        - Ubuntu 12.04 LTS (Precise Pangolin)
+
+
 resources:
-  master1.salt.dev1.crowdrise.io:  
+  first_system:
     type: "Rackspace::Cloud::Server"
     properties:
       flavor: 4 GB General Purpose v1
@@ -19,4 +38,4 @@ resources:
 outputs:
   public_ip:
     description: public IP address of the deployed compute instance
-    value: { get_attr: [master1.salt.dev1.crowdrise.io, accessIPv4] }
+    value: { get_attr: [first_system, accessIPv4] }

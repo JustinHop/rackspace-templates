@@ -62,14 +62,14 @@ resources:
 
 outputs:
   public_ip_web1:
-    description: public IP address of web1
+    description: Public IP web1
     value: { get_attr: [web1, accessIPv4] }
   private_ip_web1:
-    description: public IP address of web1
+    description: Private IP web1
     value: { get_attr: [web1, privateIPv4] }
   public_ip_web2:
-    description: public IP address of web2
+    description: Public IP web2
     value: { get_attr: [web2, accessIPv4] }
   private_ip_web2:
-    description: public IP address of web2
+    description: Private IP web2
     value: { get_attr: [web2, privateIPv4] }
