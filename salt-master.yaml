@@ -1,0 +1,40 @@
+heat_template_version: 2013-05-23
+
+description: Configuration for Salt Master
+
+parameters:
+
+  server_name:
+    description: the instance name
+    type: string
+    default: Wordpress Webserver
+
+  key_name:
+    description: Nova keypair name for ssh access to the server
+    type: string
+ 
+resources:
+  salt-master:  
+    type: "Rackspace::Cloud::Server"
+    properties:
+      flavor: 4 GB General Purpose v1
+      image: Ubuntu 14.10 (Utopic Unicorn) (PVHVM)
+      name: { get_param: server_name }
+      key_name: { get_param: key_name }
+      user_data:
+        str_replace:
+          template: |
+            #!/bin/bash -v
+            cd /root
+            wget bootstrap.saltstack.com -O bootstrap.sh
+            chmod +x bootstrap.sh
+            ./bootstrap.sh -A ext.salt.crowdrise.io -U -i %server_name%
+            salt-call state.highstate
+            salt-call state.highstate
+          params:
+            "%server_name%": { get_param: server_name }
+
+outputs:
+  public_ip:
+    description: public IP address of the deployed compute instance
+    value: { get_attr: [salt-master, accessIPv4] }
