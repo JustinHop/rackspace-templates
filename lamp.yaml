@@ -1,0 +1,252 @@
+parameter_groups:
+    -
+        parameters:
+            - image
+            - flavor
+            - server_count
+        label: 'Web Server Settings'
+    -
+        parameters:
+            - url
+            - revision
+            - packages
+            - repo
+            - deploy_key
+            - destination
+            - public
+        label: 'PHP Application Settings'
+    -
+        parameters:
+            - child_template
+            - load_balancer_hostname
+            - server_hostname
+            - http_port
+            - https_port
+            - sslcert
+            - sslkey
+            - sslcacert
+        label: 'Details'
+heat_template_version: '2013-05-23'
+description: "Heat template to deploy a load balancer and multiple servers running a PHP\napp under Apache.\n"
+parameters:
+    server_hostname:
+        default: shawnWombatDev
+        label: 'Server Name'
+        type: string
+        description: 'Server Name'
+        constraints:
+            -
+                length:
+                    max: 64
+                    min: 1
+            -
+                allowed_pattern: '[a-zA-Z][a-zA-Z0-9]*'
+                description: "git repo"
+    https_port:
+        default: 443
+        type: string
+        description: 'HTTPS Port'
+        label: 'HTTPS Port'
+    sslcert:
+        default: false
+        type: string
+        description: 'SSL Certificate'
+        label: 'SSL Certificate'
+    image:
+        default: 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
+        label: 'Operating System'
+        type: string
+        description: "Required: Server image used for all servers that are created as a part of\nthis deployment.\n"
+        constraints:
+            -
+                description: 'Must be a supported operating system.'
+                allowed_values:
+                    - 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
+                    - 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
+    flavor:
+        label: Server Size
+        description: "Rackspace Cloud Server flavor to use."
+        type: string
+        default: 4 GB General Purpose v1
+        constraints:
+            -
+                description: 'Must be a valid Rackspace Cloud Server flavor'
+                allowed_values:
+                    - 2 GB General Purpose v1
+                    - 4 GB General Purpose v1
+                    - 8 GB General Purpose v1
+                    - 1GB Standard Instance
+                    - 2GB Standard Instance
+                    - 4GB Standard Instance
+    load_balancer_hostname:
+        default: 'shawnWombatDevLB'
+        label: 'Load Balancer Hostname'
+        type: string
+        description: 'Hostname for the Load Balancer'
+        constraints:
+            -
+                length:
+                    max: 64
+                    min: 1
+            -
+                allowed_pattern: '[a-zA-Z][a-zA-Z0-9]*'
+                description: "http\\d+\\.\\$BRANCH-\\$REPO\\.dev1\\.crowdrise\\.io"
+    repo:
+        default: "https://crowdrise.git.beanstalkapp.com/squirrel.git"
+        type: string
+        description: "Optional: URL to your git repository. Use the https syntax for public\nrepositories, use git@ syntax for private repositories.\n"
+        label: 'Git Repository'
+    packages:
+        default: ""
+        type: string
+        description: "Optional: Additional system packages to install. For a list of available\npackages, see: http://packages.ubuntu.com/precise/allpackages\n"
+        label: 'System Packages'
+    server_count:
+        default: 2
+        label: 'Server Count'
+        type: number
+        description: "Required: Number of servers to spin up as a part of this deployment.\n"
+        constraints:
+            -
+                range:
+                    max: 25
+                    min: 1
+                description: 'Must be between 1 and 25 servers.'
+    http_port:
+        default: 80
+        type: string
+        description: 'HTTP Port'
+        label: 'HTTP Port'
+    url:
+        default: 'http://http1.shawn-squirrel.dev1.crowdrise.io'
+        type: string
+        description: 'URL for your site'
+        label: 'Site Domain'
+    sslkey:
+        default: false
+        type: string
+        description: 'SSL Key'
+        label: 'SSL Key'
+    destination:
+        default: /var/www/trunk
+        type: string
+        description: 'Path to setup your application on your servers.'
+        label: 'Site Path'
+    child_template:
+        default: 'https://raw.github.com/JustinHop/rackspace-templates/master/php-app-single.yaml'
+        type: string
+        description: 'Location of child template for provisioning web nodes.'
+        label: 'Child Template'
+    sslcacert:
+        default: false
+        type: string
+        description: 'SSL CA Certificate'
+        label: 'SSL CA Certificate'
+    deploy_key:
+        default: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDv25Zra5+EYVnMs3ohqO0x/X+teVmcNy++rw4PNfMno5HbEcIyM1tEGgiwEyWvROB5SRBVG6B976A6YYllRQxwpbIOTrWLfJy0khXLPIoDrE+fCOnC6ylun6zNvtqND/jvUd5K4Mu0vrkzR6jOtulwi1MbON7Ad5E8GY4tvA/dTDJGN1Gmc9WaoVDCPgjuHEpDpOUZVNDQ4l2dVR8LlAdTAVL1SWhSwX43KdX4vT7N7F++HRjZJxSyKNyHeP0TWRvxYcGRw9B9s5dlQEHllWKqBQf0mkZNVwQ3xhG7GwqmL9d7rT9t93KGt+8r8WSyGibjareNTJ9AqIQnSEJ12E5P crgit-repo@beanstalkapp.com"
+        type: string
+        description: "Optional: If you specified a private repository, provide your private\ndeploy key here.\n"
+        label: 'Git Deploy Key'
+    public:
+        default: /content
+        type: string
+        description: "The public facing directory of your application relative to the\ndestination.\n"
+        label: 'Public Directory'
+    revision:
+        default: HEAD
+        type: string
+        description: "Optional: Git Branch/Ref to deploy. Default: HEAD\n"
+        label: Revision
+outputs:
+    private_key:
+        description: 'SSH Private Key'
+        value:
+            get_attr:
+                - ssh_key
+                - private_key
+    load_balancer_ip:
+        description: 'Load Balancer IP'
+        value:
+            get_attr:
+                - load_balancer
+                - PublicIp
+    server_ips:
+        description: 'Server Public IPs'
+        value:
+            get_attr:
+                - php_setup
+                - public_ip
+resources:
+    load_balancer:
+        depends_on:
+            - php_setup
+        type: 'Rackspace::Cloud::LoadBalancer'
+        properties:
+            protocol: HTTP
+            name:
+                get_param: load_balancer_hostname
+            algorithm: ROUND_ROBIN
+            virtualIps:
+                -
+                    ipVersion: IPV4
+                    type: PUBLIC
+            contentCaching: ENABLED
+            healthMonitor:
+                delay: 10
+                attemptsBeforeDeactivation: 1
+                type: CONNECT
+                timeout: 5
+            nodes:
+                -
+                    addresses:
+                        get_attr:
+                            - php_setup
+                            - private_ip
+                    condition: ENABLED
+                    port: 80
+            port: 80
+    php_setup:
+        type: 'OS::Heat::ResourceGroup'
+        properties:
+            count:
+                get_param: server_count
+            resource_def:
+                type:
+                    get_param: child_template
+                properties:
+                    server_hostname:
+                        get_param: server_hostname
+                    private_key:
+                        get_attr:
+                            - ssh_key
+                            - private_key
+                    packages:
+                        get_param: packages
+                    stack_id:
+                        get_param: 'OS::stack_id'
+                    image:
+                        get_param: image
+                    destination:
+                        get_param: destination
+                    repo:
+                        get_param: repo
+                    url:
+                        get_param: url
+                    ssh_keypair_name:
+                        get_resource: ssh_key
+                    flavor:
+                        get_param: flavor
+                    deploy_key:
+                        get_param: deploy_key
+                    public:
+                        get_param: public
+                    revision:
+                        get_param: revision
+    ssh_key:
+        type: 'OS::Nova::KeyPair'
+        properties:
+            name:
+                get_param: 'OS::stack_id'
+            save_private_key: true
+
+

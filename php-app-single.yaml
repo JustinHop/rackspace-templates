@@ -1,0 +1,150 @@
+heat_template_version: 2013-05-23
+
+description: |
+  Heat template to deploy a single server running a PHP app under apache
+
+parameters:
+
+  server_hostname:
+    description: Server Name
+    type: string
+    default: php
+    constraints:
+    - length:
+        min: 1
+        max: 64
+
+  image:
+    label: Operating System
+    description: |
+      Server image used for all servers that are created as a part of this
+      deployment
+    type: string
+    default: base-dev-01
+    constraints:
+    - allowed_values:
+      - base-dev-01
+      - Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)
+      - Ubuntu 14.10 (Utopic Unicorn) (PVHVM)
+      description: Must be a supported operating system.
+
+  flavor:
+    label: Server Size
+    description: |
+      Rackspace Cloud Server flavor to use. The size is based on the amount of
+      RAM for the provisioned server.
+    type: string
+    default: 4 GB General Purpose v1
+    constraints:
+    - allowed_values:
+      - 1 GB General Purpose v1
+      - 2 GB General Purpose v1
+      - 4 GB General Purpose v1
+      - 8 GB General Purpose v1
+      - 1GB Standard Instance
+      - 2GB Standard Instance
+      - 4GB Standard Instance
+      description: |
+        Must be a valid Rackspace Cloud Server flavor for the region you have
+        selected to deploy into.
+
+  ssh_keypair_name:
+    description: Nova keypair name for ssh access to the server
+    type: string
+    default: php-app
+
+  revision:
+    description: Git Branch/Ref
+    type: string
+    default: HEAD
+
+  packages:
+    description: PHP Packages
+    type: string
+    default: ''
+
+  repo:
+    description: Git Repo URL
+    type: string
+    default: ''
+
+  url:
+    description: URL for site
+    type: string
+    default: 'http://example.com'
+
+  deploy_key:
+    description: Git deploy key for private repositories.
+    type: string
+    default: ''
+
+  destination:
+    description: Deploy Directory
+    default: /var/www/vhosts/application
+    type: string
+
+  public:
+    description: The public facing directory of your application relative to the destination.
+    type: string
+    default: /
+
+  sslcert:
+    description: SSL Certificate
+    type: string
+    default: false
+
+  sslkey:
+    description: SSL Key
+    type: string
+    default: false
+
+  sslcacert:
+    description: SSL CA Certificate
+    type: string
+    default: false
+
+  # varnish:
+  #  description: Install Varnish
+  #  type: string
+  #  default: false
+
+  http_port:
+    description: HTTP Port
+    type: string
+    default: 80
+
+  https_port:
+      description: HTTPS Port
+      type: string
+      default: 443
+
+  private_key:
+    description: Private SSH key
+    type: string
+    default: false
+
+  stack_id:
+    description: Meta data to attach to instances
+    type: string
+    default: heat
+
+resources:
+
+  php_server:
+    type: "Rackspace::Cloud::Server"
+    properties:
+      name: { get_param: server_hostname }
+      flavor: { get_param: flavor }
+      image: { get_param: image }
+      key_name: { get_param: ssh_keypair_name }
+      user_data: "salt-call state.highstate\n"
+      metadata:
+        rax-heat: { get_param: stack_id }
+
+outputs:
+
+  public_ip:
+    value: { get_attr: [php_server, accessIPv4] }
+
+  private_ip:
+    value: { get_attr: [php_server, privateIPv4]}

@@ -1,0 +1,22 @@
+heat_template_version: 2013-05-23
+ 
+resources:
+  master1.salt.dev1.crowdrise.io:  
+    type: "Rackspace::Cloud::Server"
+    properties:
+      flavor: 4 GB General Purpose v1
+      image: Ubuntu 14.10 (Utopic Unicorn) (PVHVM)
+      name: master1.salt.dev1.crowdrise.io
+      user_data_format: RAW
+      user_data: |
+        #!/bin/bash
+        wget bootstrap.saltstack.com -O bootsrap.sh
+        chmod +x bootstrap.sh
+        ./bootstrap.sh -A ext.salt.crowdrise.io -U
+        salt-call state.highstate
+        salt-call state.highstate
+
+outputs:
+  public_ip:
+    description: public IP address of the deployed compute instance
+    value: { get_attr: [master1.salt.dev1.crowdrise.io, accessIPv4] }
