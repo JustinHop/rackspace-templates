@@ -5,19 +5,10 @@ description: |
 
 parameters:
 
-  server_hostname1:
+  server_hostname:
     description: Server Name
     type: string
-    default: http1.www.dev1.crowdrise.io
-    constraints:
-    - length:
-        min: 1
-        max: 64
-
-  server_hostname2:
-    description: Server Name
-    type: string
-    default: http2.www.dev1.crowdrise.io
+    default: http1.os.dev1.crowdrise.io
     constraints:
     - length:
         min: 1

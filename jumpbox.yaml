@@ -60,9 +60,12 @@ resources:
         salt-call state.highstate | tee -a /var/log/bootstrap.log
         salt-call state.highstate | tee -a /var/log/bootstrap.log
       networks:
-        uuid: 00000000-0000-0000-0000-000000000000
-        uuid: 11111111-1111-1111-1111-111111111111
-        uuid: 2e0ff97f-1ae5-4100-a047-164df60fc0e6
+        -
+          uuid: 00000000-0000-0000-0000-000000000000
+        -
+          uuid: 11111111-1111-1111-1111-111111111111
+        -
+          uuid: 2e0ff97f-1ae5-4100-a047-164df60fc0e6
 
 
 outputs:
