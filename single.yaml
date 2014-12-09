@@ -2,80 +2,62 @@ heat_template_version: 2013-05-23
 
 description: Single System
 
-paramaters:
+parameters:
 
   instance_image:
     type: string
     label: Image OS
     description: Operating system for VM
-    default: Ubuntu 14.10 (Utopic Unicorn) (PVHVM)
+    default: 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
     constraints:
-      - allowed_values:
-        - Ubuntu 14.10 (Utopic Unicorn) (PVHVM)
-        - Ubuntu 14.10 (Utopic Unicorn)
-        - Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)
-        - Ubuntu 14.04 LTS (Trusty Tahr)
-        - Ubuntu 12.04 LTS (Precise Pangolin) (PVHVM)
-        - Ubuntu 12.04 LTS (Precise Pangolin)
+      -
+        allowed_values:
+          - 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
+          - 'Ubuntu 14.10 (Utopic Unicorn)'
+          - 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
+          - 'Ubuntu 14.04 LTS (Trusty Tahr)'
+          - 'Ubuntu 12.04 LTS (Precise Pangolin) (PVHVM)'
+          - 'Ubuntu 12.04 LTS (Precise Pangolin)'
 
   instance_flavor:
     type: string
     label: Image Flavor
     description: VM Flavor
-    default: 1GB Standard Instance
+    default: '2GB Standard Instance'
     constraints:
-      - allowed_values:
-        - 512MB Standard Instance
-        - 1GB Standard Instance
-        - 2GB Standard Instance
-        - 4GB Standard Instance
-        - 8GB Standard Instance
-        - 15GB Standard Instance
-        - 30GB Standard Instance
-        - 15 GB Compute v1
-        - 30 GB Compute v1
-        - 3.75 GB Compute v1
-        - 60 GB Compute v1
-        - 7.5 GB Compute v1
-        - 1 GB General Purpose v1
-        - 2 GB General Purpose v1
-        - 4 GB General Purpose v1
-        - 8 GB General Purpose v1
-        - 120 GB I/O v1
-        - 15 GB I/O v1
-        - 30 GB I/O v1
-        - 60 GB I/O v1
-        - 90 GB I/O v1
-        - 120 GB Memory v1
-        - 15 GB Memory v1
-        - 240 GB Memory v1
-        - 30 GB Memory v1
-        - 60 GB Memory v1
-        - 1 GB Performance
-        - 2 GB Performance
-        - 4 GB Performance
-        - 8 GB Performance
-        - 120 GB Performance
-        - 15 GB Performance
-        - 30 GB Performance
-        - 60 GB Performance
-        - 90 GB Performance
+      -
+        allowed_values:
+          - '2GB Standard Instance'
+          - '4GB Standard Instance'
+          - '8GB Standard Instance'
+          - '15GB Standard Instance'
+          - '3.75 GB Compute v1'
+          - '7.5 GB Compute v1'
+          - '1 GB General Purpose v1'
+          - '2 GB General Purpose v1'
+          - '4 GB General Purpose v1'
+          - '15 GB I/O v1'
+          - '30 GB I/O v1'
+          - '15 GB Memory v1'
+          - '1 GB Performance'
+          - '2 GB Performance'
+          - '4 GB Performance'
+          - '15 GB Performance'
+          - '30 GB Performance'
 
 resources:
   first_system:
     type: "Rackspace::Cloud::Server"
     properties:
-      flavor: 2 GB General Purpose v1
-      image: Ubuntu 14.10 (Utopic Unicorn)
+      flavor: { get_param: instance_flavor }
+      image: { get_param: instance_image }
       name: http1.os.dev1.crowdrise.io
       key_name: hop-2014-2048
       user_data: |
         #!/bin/bash -v
-        wget bootstrap.saltstack.com -O bootsrap.sh
-        chmod +x bootstrap.sh
-        ./bootstrap.sh -A master01.salt.dev1.crowdrise.io -U
-        salt-call state.highstate
-        salt-call state.highstate
+        curl -L https://bootstrap.saltstack.com | sh -s -- -A master01.salt.dev1.crowdrise.io -U 2>&1 | tee /var/log/bootstrap.log
+        salt-call state.highstate | tee -a /var/log/bootstrap.log
+        salt-call state.highstate | tee -a /var/log/bootstrap.log
 
 outputs:
   public_ip_web1:
