@@ -9,15 +9,15 @@ parameters:
     type: string
     default: master01.salt.dev1.crowdrise.io
 
-  web1_name:
-    description: the instance name
+  class_name_web:
+    description: class name for webservers
     type: string
-    default: http1.www.dev1.crowdrise.io
+    default: http
 
-  web2_name:
-    description: the instance name
+  product_name_web:
+    description: product name for webservers
     type: string
-    default: http2.www.dev1.crowdrise.io
+    default: www
 
   key_name:
     description: Nova keypair name
@@ -36,8 +36,9 @@ resources:
         str_replace:
           template: |
             #!/bin/bash -v
-            curl -L https://bootstrap.saltstack.com | sudo sh -s -- -A ext.salt.crowdrise.io -U -i %web1_name%
-            sudo salt-call state.highstate || true
+            echo "104.130.155.83 master01.salt.dev1.crowdrise.io salt" | tee -a /etc/hosts
+            curl -L https://bootstrap.saltstack.com | sh -s -- -A master01.salt.dev1.crowdrise.io -U -i %web1_name% | tee /var/log/bootstrap.log
+            sudo salt-call state.highstate 
             sudo salt-call state.highstate
             true
           params:
@@ -53,8 +54,9 @@ resources:
         str_replace:
           template: |
             #!/bin/bash -v
-            curl -L https://bootstrap.saltstack.com | sudo sh -s -- -A ext.salt.crowdrise.io -U -i %web2_name%
-            sudo salt-call state.highstate || true
+            echo "104.130.155.83 master01.salt.dev1.crowdrise.io salt" | tee -a /etc/hosts
+            curl -L https://bootstrap.saltstack.com | sh -s -- -A master01.salt.dev1.crowdrise.io -U -i %web1_name% | tee /var/log/bootstrap.log
+            sudo salt-call state.highstate 
             sudo salt-call state.highstate
             true
           params:

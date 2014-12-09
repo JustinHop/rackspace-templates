@@ -65,14 +65,15 @@ resources:
   first_system:
     type: "Rackspace::Cloud::Server"
     properties:
-      flavor: 4 GB General Purpose v1
-      image: Ubuntu 14.10 (Utopic Unicorn) (PVHVM)
-      name: http1.www.dev35.crowdrise.io
+      flavor: 2 GB General Purpose v1
+      image: Ubuntu 14.10 (Utopic Unicorn)
+      name: http1.os.dev1.crowdrise.io
+      key_name: hop-2014-2048
       user_data: |
-        #!/bin/bash
+        #!/bin/bash -v
         wget bootstrap.saltstack.com -O bootsrap.sh
         chmod +x bootstrap.sh
-        ./bootstrap.sh -A ext.salt.crowdrise.io -U
+        ./bootstrap.sh -A master01.salt.dev1.crowdrise.io -U
         salt-call state.highstate
         salt-call state.highstate
 
