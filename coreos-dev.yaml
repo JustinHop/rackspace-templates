@@ -1,0 +1,59 @@
+heat_template_version: 2013-05-23
+
+description: Deploy a CoreOS cluster that tracks the Stable Channel
+
+parameters:
+  count:
+    description: Number of CoreOS machines to deploy
+    type: number
+    default: 3
+    constraints:
+    - range:
+        min: 3
+        max: 12
+      description: Must be between 3 and 12 servers.
+  key-name:
+    type: string
+    description: Name of key-pair to be used for compute instance
+  flavor:
+    type: string
+    default: 4 GB Performance
+    constraints:
+    - allowed_values:
+      - 2 GB Performance
+      - 4 GB Performance
+      - 8 GB Performance
+      - 15 GB Performance
+      - 30 GB Performance
+      - 2GB Standard Instance
+      - 4GB Standard Instance
+      - 8GB Standard Instance
+      - 15GB Standard Instance
+      - 30GB Standard Instance
+      description: |
+        Must be a valid Rackspace Cloud Server flavor for the region you have
+        selected to deploy into.
+  user-data:
+    type: string
+    description: |
+      Formatted user_data containing cloud-config or a script to run on boot.
+  name:
+    type: string
+    description: Name of each CoreOS machine booted
+    default: CoreOS-stable
+
+resources:
+  machines:
+    type: "OS::Heat::ResourceGroup"
+    properties:
+      count: { get_param: count }
+      resource_def:
+        type: OS::Nova::Server
+        properties:
+          key_name: { get_param: key-name }
+          image: "7fd88211-ce43-41bf-9a85-e73df4066581"
+          flavor: { get_param: flavor }
+          name: { get_param: name }
+          user_data_format: RAW
+          config_drive: "true"
+          user_data: { get_param: user-data }

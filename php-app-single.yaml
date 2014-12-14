@@ -9,19 +9,11 @@ parameters:
     description: Server Name
     type: string
     default: http1.www.dev1.crowdrise.io
-    constraints:
-    - length:
-        min: 1
-        max: 64
 
   server_hostname2:
     description: Server Name
     type: string
     default: http2.www.dev1.crowdrise.io
-    constraints:
-    - length:
-        min: 1
-        max: 64
 
   image:
     label: Operating System
@@ -146,8 +138,6 @@ resources:
       flavor: { get_param: flavor }
       image: { get_param: image }
       key_name: { get_param: ssh_keypair_name }
-      user_data_format: RAW
-      user_data: "#!/bin/bash\ncurl -L https://bootstrap.saltstack.com | sh -s -- -A master01.salt.dev1.crowdrise.io -U | tee /var/log/bootstrap.log\nsalt-call state.highstate"
       metadata:
         rax-heat: { get_param: stack_id }
       networks:
@@ -164,8 +154,6 @@ resources:
       flavor: { get_param: flavor }
       image: { get_param: image }
       key_name: { get_param: ssh_keypair_name }
-      user_data_format: RAW
-      user_data: "#!/bin/bash\ncurl -L https://bootstrap.saltstack.com | sh -s -- -A master01.salt.dev1.crowdrise.io -U | tee /var/log/bootstrap.log\nsalt-call state.highstate"
       metadata:
         rax-heat: { get_param: stack_id }
       networks:
