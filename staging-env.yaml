@@ -4,6 +4,17 @@ description: Staging Environment on Prod Rackspace Account
 
 parameters:
 
+  salt_config_script:
+    description: User Data script to configure salt and get it going
+    type: string
+    default: |
+      #!/bin/bash -v
+      curl -L https://bootstrap.saltstack.com | sh -s -- -A master1.salt.prod1.crowdrise.io -U -P git 2014.7 2>&1 | tee /var/log/bootstrap.log
+      ( salt-call state.highstate || true ) | tee -a /var/log/bootstrap.log
+      ( salt-call state.highstate || true ) | tee -a /var/log/bootstrap.log"
+      ( salt-call state.highstate || true ) | tee -a /var/log/bootstrap.log"
+      reboot
+
   redis_name:
     description: base name for the web server instances
     type: string
@@ -71,7 +82,7 @@ parameters:
     type: string
     label: Apache Server OS Image
     description: Operating system for VM
-    default: 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
+    default: 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
     constraints:
       -
         allowed_values:
@@ -130,14 +141,7 @@ resources:
           key_name: hop-2048
           image:
             get_param: web_image
-          user_data: |
-            #!/bin/bash -v
-            echo $(hostname).www.stage1.crowdrise.io > /etc/hostname
-            sed -i -e "s/$(hostname)/$(hostname).www.stage1.crowdrise.io/g" /etc/hosts
-            hostname $(hostname).www.stage1.crowdrise.io 
-            curl -L https://bootstrap.saltstack.com | sh -s -- -A master1.salt.prod1.crowdrise.io -U -P git 2014.7 2>&1 | tee /var/log/bootstrap.log
-            salt-call state.highstate | tee -a /var/log/bootstrap.log
-            salt-call state.highstate | tee -a /var/log/bootstrap.log"
+          user_data: { get_param: salt_config_script }
           metadata:
             rax-heat: { get_param: "OS::stack_id" }
             stack-name: { get_param: "OS::stack_name" }
@@ -160,14 +164,7 @@ resources:
           key_name: hop-2048
           image:
             get_param: redis_image
-          user_data: |
-            #!/bin/bash -v
-            echo $(hostname).cache.stage1.crowdrise.io > /etc/hostname
-            sed -i -e "s/$(hostname)/$(hostname).cache.stage1.crowdrise.io/g" /etc/hosts
-            hostname $(hostname).cache.stage1.crowdrise.io 
-            curl -L https://bootstrap.saltstack.com | sh -s -- -A master1.salt.prod1.crowdrise.io -U -P git 2014.7 2>&1 | tee /var/log/bootstrap.log
-            salt-call state.highstate | tee -a /var/log/bootstrap.log
-            salt-call state.highstate | tee -a /var/log/bootstrap.log"
+          user_data: { get_param: salt_config_script }
           metadata:
             rax-heat: { get_param: "OS::stack_id" }
             stack-name: { get_param: "OS::stack_name" }
