@@ -1,0 +1,213 @@
+heat_template_version: 2013-05-23
+
+description: Staging Environment on Prod Rackspace Account
+
+parameters:
+
+  redis_name:
+    description: base name for the web server instances
+    type: string
+    default: redis
+
+  redis_name_end:
+    description: base name for the web server instances
+    type: string
+    default: .cache.stage1.crowdrise.io
+
+  redis_image:
+    type: string
+    label: Redis Server OS Image
+    description: Operating system for VM
+    default: 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
+    constraints:
+      -
+        allowed_values:
+          - 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
+          - 'Ubuntu 14.10 (Utopic Unicorn)'
+          - 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
+          - 'Ubuntu 14.04 LTS (Trusty Tahr)'
+          - 'Ubuntu 12.04 LTS (Precise Pangolin) (PVHVM)'
+          - 'Ubuntu 12.04 LTS (Precise Pangolin)'
+
+  redis_flavor:
+    type: string
+    label: Image Flavor
+    description: Redis Server VM Flavor
+    default: '4 GB Performance'
+    constraints:
+      -
+        allowed_values:
+          - '4GB Standard Instance'
+          - '8GB Standard Instance'
+          - '3.75 GB Compute v1'
+          - '7.5 GB Compute v1'
+          - '4 GB General Purpose v1'
+          - '4 GB Performance'
+          - '15 GB Performance'
+
+  redis_number:
+    default: 2
+    label: 'Redis Servers'
+    type: number
+    description: 'Number of Redis Servers to deploy.'
+    constraints:
+      -
+        range:
+          max: 3
+          min: 0
+        description: 'Must be between 0 and 3 servers'
+
+  web_name:
+    description: base name for the web server instances
+    type: string
+    default: http
+
+  web_name_end:
+    description: base name for the web server instances
+    type: string
+    default: .www.stage1.crowdrise.io
+
+  web_image:
+    type: string
+    label: Apache Server OS Image
+    description: Operating system for VM
+    default: 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
+    constraints:
+      -
+        allowed_values:
+          - 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
+          - 'Ubuntu 14.10 (Utopic Unicorn)'
+          - 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
+          - 'Ubuntu 14.04 LTS (Trusty Tahr)'
+          - 'Ubuntu 12.04 LTS (Precise Pangolin) (PVHVM)'
+          - 'Ubuntu 12.04 LTS (Precise Pangolin)'
+
+  web_flavor:
+    type: string
+    label: VM Flavor
+    description: Apache Server VM Flavor
+    default: '4 GB Performance'
+    constraints:
+      -
+        allowed_values:
+          - '4GB Standard Instance'
+          - '8GB Standard Instance'
+          - '3.75 GB Compute v1'
+          - '7.5 GB Compute v1'
+          - '4 GB General Purpose v1'
+          - '4 GB Performance'
+          - '15 GB Performance'
+
+  web_numbers:
+    default: 2
+    label: 'Apache Servers'
+    type: number
+    description: 'Number of Apache Servers to deploy.'
+    constraints:
+      -
+        range:
+          max: 10
+          min: 0
+        description: 'Must be between 0 and 10 servers'
+
+resources:
+  webservers:
+    type: 'OS::Heat::ResourceGroup'
+    properties:
+      count: 
+        get_param: web_numbers
+      resource_def:
+        type: 'Rackspace::Cloud::Server'
+        properties:
+          name:
+            str_replace:
+              template: $front%index%.$back
+              params:
+                $front: { get_param: web_name }
+                $back: { get_param: web_name_end }
+          flavor:
+            get_param: web_flavor
+          key_name: hop-2048
+          image:
+            get_param: web_image
+          user_data_format: RAW
+          user_data: |
+            #!/bin/bash -v
+            echo $(hostname).www.stage1.crowdrise.io > /etc/hostname
+            sed -i -e "s/$(hostname)/$(hostname).www.stage1.crowdrise.io/g" /etc/hosts
+            hostname $(hostname).www.stage1.crowdrise.io 
+            curl -L https://bootstrap.saltstack.com | sh -s -- -A master1.salt.prod1.crowdrise.io -U -P git 2014.7 2>&1 | tee /var/log/bootstrap.log
+            salt-call state.highstate | tee -a /var/log/bootstrap.log
+            salt-call state.highstate | tee -a /var/log/bootstrap.log"
+          metadata:
+            rax-heat: { get_param: "OS::stack_id" }
+            stack-name: { get_param: "OS::stack_name" }
+  redisservers:
+    type: 'OS::Heat::ResourceGroup'
+    properties:
+      count:
+        get_param: redis_number
+      resource_def:
+        type: 'Rackspace::Cloud::Server'
+        properties:
+          flavor:
+            get_param: redis_flavor
+          name:
+            str_replace:
+              template: $front%index%.$back
+              params:
+                $front: { get_param: redis_name }
+                $back: { get_param: redis_name_end }
+          key_name: hop-2048
+          image:
+            get_param: redis_image
+          user_data_format: RAW
+          user_data: |
+            #!/bin/bash -v
+            echo $(hostname).cache.stage1.crowdrise.io > /etc/hostname
+            sed -i -e "s/$(hostname)/$(hostname).cache.stage1.crowdrise.io/g" /etc/hosts
+            hostname $(hostname).cache.stage1.crowdrise.io 
+            curl -L https://bootstrap.saltstack.com | sh -s -- -A master1.salt.prod1.crowdrise.io -U -P git 2014.7 2>&1 | tee /var/log/bootstrap.log
+            salt-call state.highstate | tee -a /var/log/bootstrap.log
+            salt-call state.highstate | tee -a /var/log/bootstrap.log"
+          metadata:
+            rax-heat: { get_param: "OS::stack_id" }
+            stack-name: { get_param: "OS::stack_name" }
+
+outputs:
+  public_ip_web:
+    description: Web Public IP
+    value: { get_attr: [webservers, accessIPv4] }
+  private_ip_web:
+    description: Web Private IP
+    value: { get_attr: [webservers, privateIPv4] }
+  public_ips_web:
+    description: 'Web Public IPs'
+    value:
+      get_attr:
+        - webservers
+        - accessIPv4
+  private_ips_web:
+    description: 'Web Internal IPs'
+    value:
+      get_attr:
+        - webservers
+        - accessIPv4
+  public_ip_redis:
+    description: Redis Public IP
+    value: { get_attr: [redisservers, accessIPv4] }
+  private_ip_redis:
+    description: Redis Private IP
+    value: { get_attr: [redisservers, privateIPv4] }
+  public_ips_redis:
+    description: 'Redis Public IPs'
+    value:
+      get_attr:
+        - redisservers
+        - accessIPv4
+  private_ips_redis:
+    description: 'Redis Internal IPs'
+    value:
+      get_attr:
+        - redisservers
+        - accessIPv4
