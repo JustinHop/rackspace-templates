@@ -6,10 +6,10 @@ parameters:
   count:
     description: Number of CoreOS machines to deploy
     type: number
-    default: 3
+    default: 2
     constraints:
     - range:
-        min: 3
+        min: 2
         max: 12
       description: Must be between 3 and 12 servers.
   key-name:
