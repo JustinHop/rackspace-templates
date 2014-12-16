@@ -121,7 +121,7 @@ resources:
         properties:
           name:
             str_replace:
-              template: $front%index%.$back
+              template: $front%index%$back
               params:
                 $front: { get_param: web_name }
                 $back: { get_param: web_name_end }
@@ -130,7 +130,6 @@ resources:
           key_name: hop-2048
           image:
             get_param: web_image
-          user_data_format: RAW
           user_data: |
             #!/bin/bash -v
             echo $(hostname).www.stage1.crowdrise.io > /etc/hostname
@@ -154,14 +153,13 @@ resources:
             get_param: redis_flavor
           name:
             str_replace:
-              template: $front%index%.$back
+              template: $front%index%$back
               params:
                 $front: { get_param: redis_name }
                 $back: { get_param: redis_name_end }
           key_name: hop-2048
           image:
             get_param: redis_image
-          user_data_format: RAW
           user_data: |
             #!/bin/bash -v
             echo $(hostname).cache.stage1.crowdrise.io > /etc/hostname
@@ -175,12 +173,6 @@ resources:
             stack-name: { get_param: "OS::stack_name" }
 
 outputs:
-  public_ip_web:
-    description: Web Public IP
-    value: { get_attr: [webservers, accessIPv4] }
-  private_ip_web:
-    description: Web Private IP
-    value: { get_attr: [webservers, privateIPv4] }
   public_ips_web:
     description: 'Web Public IPs'
     value:
@@ -193,12 +185,6 @@ outputs:
       get_attr:
         - webservers
         - accessIPv4
-  public_ip_redis:
-    description: Redis Public IP
-    value: { get_attr: [redisservers, accessIPv4] }
-  private_ip_redis:
-    description: Redis Private IP
-    value: { get_attr: [redisservers, privateIPv4] }
   public_ips_redis:
     description: 'Redis Public IPs'
     value:
