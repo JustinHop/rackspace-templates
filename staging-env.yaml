@@ -15,6 +15,60 @@ parameters:
       ( salt-call state.highstate || true ) | tee -a /var/log/bootstrap.log
       reboot
 
+  sphinx_name:
+    description: base name for the web server instances
+    type: string
+    default: sphinx
+
+  sphinx_name_end:
+    description: base name for the web server instances
+    type: string
+    default: .cache.stage1.crowdrise.io
+
+  sphinx_image:
+    type: string
+    label: sphinx Server OS Image
+    description: Operating system for VM
+    default: 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
+    constraints:
+      -
+        allowed_values:
+          - 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
+          - 'Ubuntu 14.10 (Utopic Unicorn)'
+          - 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
+          - 'Ubuntu 14.04 LTS (Trusty Tahr)'
+          - 'Ubuntu 12.04 LTS (Precise Pangolin) (PVHVM)'
+          - 'Ubuntu 12.04 LTS (Precise Pangolin)'
+
+  sphinx_flavor:
+    type: string
+    label: Image Flavor
+    description: sphinx Server VM Flavor
+    default: '4 GB Performance'
+    constraints:
+      -
+        allowed_values:
+          - '4GB Standard Instance'
+          - '8GB Standard Instance'
+          - '3.75 GB Compute v1'
+          - '7.5 GB Compute v1'
+          - '4 GB General Purpose v1'
+          - '4 GB Performance'
+          - '15 GB Performance'
+
+  sphinx_number:
+    default: 2
+    label: 'sphinx Servers'
+    type: number
+    description: 'Number of sphinx Servers to deploy.'
+    constraints:
+      -
+        range:
+          max: 3
+          min: 0
+        description: 'Must be between 0 and 3 servers'
+
+
   redis_name:
     description: base name for the web server instances
     type: string
@@ -145,6 +199,29 @@ resources:
           metadata:
             rax-heat: { get_param: "OS::stack_id" }
             stack-name: { get_param: "OS::stack_name" }
+  sphinxservers:
+    type: 'OS::Heat::ResourceGroup'
+    properties:
+      count:
+        get_param: sphinx_number
+      resource_def:
+        type: 'Rackspace::Cloud::Server'
+        properties:
+          flavor:
+            get_param: sphinx_flavor
+          name:
+            str_replace:
+              template: $front%index%$back
+              params:
+                $front: { get_param: sphinx_name }
+                $back: { get_param: sphinx_name_end }
+          key_name: hop-2048
+          image:
+            get_param: sphinx_image
+          user_data: { get_param: salt_config_script }
+          metadata:
+            rax-heat: { get_param: "OS::stack_id" }
+            stack-name: { get_param: "OS::stack_name" }
   redisservers:
     type: 'OS::Heat::ResourceGroup'
     properties:
@@ -170,20 +247,14 @@ resources:
             stack-name: { get_param: "OS::stack_name" }
 
 outputs:
-  public_ips_web:
-    description: 'Web Public IPs'
-    value:
-      get_attr:
-        - webservers
-        - accessIPv4
   private_ips_web:
     description: 'Web Internal IPs'
     value:
       get_attr:
         - webservers
         - accessIPv4
-  public_ips_redis:
-    description: 'Redis Public IPs'
+  private_ips_redis:
+    description: 'Sphinx Internal IPs'
     value:
       get_attr:
         - redisservers
