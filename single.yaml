@@ -1,14 +1,30 @@
 heat_template_version: 2013-05-23
 
-description: Salt Configured System
+description: Single System
 
 parameters:
 
-  instance_image:
+  salt_config_script:
+    description: User Data script to configure salt and get it going
     type: string
-    label: Image OS
+    default: |
+      #!/bin/bash -v
+      curl -L https://bootstrap.saltstack.com | sh -s -- -A master1.salt.prod1.crowdrise.io -U -P git 2014.7 2>&1 | tee /var/log/bootstrap.log
+      ( salt-call state.highstate || true ) | tee -a /var/log/bootstrap.log
+      ( salt-call state.highstate || true ) | tee -a /var/log/bootstrap.log"
+      ( salt-call state.highstate || true ) | tee -a /var/log/bootstrap.log"
+      reboot
+
+  system_name:
+    description: base name for the web server instances
+    type: string
+    default: http
+
+  system_image:
+    type: string
+    label: Apache Server OS Image
     description: Operating system for VM
-    default: 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
+    default: 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
     constraints:
       -
         allowed_values:
@@ -19,51 +35,75 @@ parameters:
           - 'Ubuntu 12.04 LTS (Precise Pangolin) (PVHVM)'
           - 'Ubuntu 12.04 LTS (Precise Pangolin)'
 
-  instance_flavor:
+  system_flavor:
     type: string
-    label: Image Flavor
-    description: VM Flavor
-    default: '2GB Standard Instance'
+    label: VM Flavor
+    description: Apache Server VM Flavor
+    default: '4 GB Performance'
     constraints:
       -
         allowed_values:
+          - '512MB Standard Instance'
+          - '1GB Standard Instance'
           - '2GB Standard Instance'
           - '4GB Standard Instance'
           - '8GB Standard Instance'
           - '15GB Standard Instance'
+          - '30GB Standard Instance'
+          - '15 GB Compute v1'
+          - '30 GB Compute v1'
           - '3.75 GB Compute v1'
+          - '60 GB Compute v1'
           - '7.5 GB Compute v1'
           - '1 GB General Purpose v1'
           - '2 GB General Purpose v1'
           - '4 GB General Purpose v1'
+          - '8 GB General Purpose v1'
+          - '120 GB I/O v1'
           - '15 GB I/O v1'
           - '30 GB I/O v1'
+          - '60 GB I/O v1'
+          - '90 GB I/O v1'
+          - '120 GB Memory v1'
           - '15 GB Memory v1'
+          - '240 GB Memory v1'
+          - '30 GB Memory v1'
+          - '60 GB Memory v1'
           - '1 GB Performance'
           - '2 GB Performance'
           - '4 GB Performance'
+          - '8 GB Performance'
+          - '120 GB Performance'
           - '15 GB Performance'
           - '30 GB Performance'
+          - '60 GB Performance'
+          - '90 GB Performance'
 
 resources:
-  first_system:
-    type: "Rackspace::Cloud::Server"
+  webserver:
+    type: 'Rackspace::Cloud::Server'
     properties:
-      flavor: { get_param: instance_flavor }
-      image: { get_param: instance_image }
-      name: jump1.net.dev1.crowdrise.io
+      name: { get_param: system_name }
+      flavor:
+        get_param: system_flavor
       key_name: hop-2048
-      user_data: |
-        #!/bin/bash -v
-        curl -L https://bootstrap.saltstack.com | sh -s -- -A master01.salt.dev1.crowdrise.io -U 2>&1 | tee /var/log/bootstrap.log
-        salt-call state.highstate | tee -a /var/log/bootstrap.log
-        salt-call state.highstate | tee -a /var/log/bootstrap.log
-
+      image:
+        get_param: system_image
+      user_data: { get_param: salt_config_script }
+      metadata:
+        rax-heat: { get_param: "OS::stack_id" }
+        stack-name: { get_param: "OS::stack_name" }
 
 outputs:
-  public_ip_web1:
-    description: Public IP
-    value: { get_attr: [first_system, accessIPv4] }
-  private_ip_web1:
-    description: Private IP
-    value: { get_attr: [first_system, privateIPv4] }
+  public_ips_web:
+    description: 'Web Public IPs'
+    value:
+      get_attr:
+        - webserver
+        - publicIPv4
+  private_ips_web:
+    description: 'Web Internal IPs'
+    value:
+      get_attr:
+        - webserver
+        - accessIPv4
