@@ -65,6 +65,60 @@ parameters:
     constraints:
       -
         range:
+          max: 5
+          min: 0
+        description: 'Must be between 0 and 5 servers'
+  sql_name:
+    description: base name for the web server instances
+    type: string
+    default: sql
+
+  sql_name_end:
+    description: base name for the web server instances
+    type: string
+    default: .percona.stage1.crowdrise.io
+
+  sql_image:
+    type: string
+    label: sql Server OS Image
+    description: Operating system for VM
+    default: 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
+    constraints:
+      -
+        allowed_values:
+          - 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
+          - 'Ubuntu 14.10 (Utopic Unicorn)'
+          - 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
+          - 'Ubuntu 14.04 LTS (Trusty Tahr)'
+          - 'Ubuntu 12.04 LTS (Precise Pangolin) (PVHVM)'
+          - 'Ubuntu 12.04 LTS (Precise Pangolin)'
+
+  sql_flavor:
+    type: string
+    label: Image Flavor
+    description: sql Server VM Flavor
+    default: '30 GB Performance'
+    constraints:
+      -
+        allowed_values:
+          - '4GB Standard Instance'
+          - '8GB Standard Instance'
+          - '3.75 GB Compute v1'
+          - '7.5 GB Compute v1'
+          - '4 GB General Purpose v1'
+          - '4 GB Performance'
+          - '8 GB Performance'
+          - '15 GB Performance'
+          - '30 GB Performance'
+
+  sql_number:
+    default: 2
+    label: 'sql Servers'
+    type: number
+    description: 'Number of sql Servers to deploy.'
+    constraints:
+      -
+        range:
           max: 3
           min: 0
         description: 'Must be between 0 and 3 servers'
@@ -153,7 +207,7 @@ parameters:
     type: string
     label: VM Flavor
     description: Apache Server VM Flavor
-    default: '15 GB Performance'
+    default: '8 GB Performance'
     constraints:
       -
         allowed_values:
@@ -163,6 +217,7 @@ parameters:
           - '7.5 GB Compute v1'
           - '4 GB General Purpose v1'
           - '4 GB Performance'
+          - '8 GB Performance'
           - '15 GB Performance'
 
   web_numbers:
@@ -178,8 +233,33 @@ parameters:
         description: 'Must be between 0 and 10 servers'
 
 resources:
+  webservers:
+    type: 'OS::Heat::ResourceGroup'
+    properties:
+      count:
+        get_param: web_number
+      resource_def:
+        type: 'Rackspace::Cloud::Server'
+        properties:
+          flavor:
+            get_param: web_flavor
+          name:
+            str_replace:
+              template: $front%index%$back
+              params:
+                $front: { get_param: web_name }
+                $back: { get_param: web_name_end }
+          key_name: hop-2048
+          image:
+            get_param: web_image
+          user_data: { get_param: salt_config_script }
+          metadata:
+            rax-heat: { get_param: "OS::stack_id" }
+            stack-name: { get_param: "OS::stack_name" }
   web_lb:
     type: "Rackspace::Cloud::LoadBalancer"
+    depends_on:
+      - webservers
     properties:
       name:
         str_replace:
@@ -187,7 +267,15 @@ resources:
           params:
             $front: { get_param: web_name }
             $back: { get_param: web_name_end }
-      nodes: []
+      nodes:
+      - addresses: [ { get_attr: [webservers, privateIPv4] } ]
+        port: 443
+        condition: enabled
+      healthMonitor:
+        type: HTTPS
+        delay: 10
+        timeout: 5
+        attemptsBeforeDeactivation: 3
       port: 443
       protocol: HTTPS
       algorithm: ROUND_ROBIN
@@ -197,45 +285,6 @@ resources:
       metadata:
         rax-heat: { get_param: "OS::stack_id" }
         stack-name: { get_param: "OS::stack_name" }
-  webservers:
-    type: 'Rackspace::AutoScale::Group'
-    properties:
-      groupConfiguration:
-        name: 
-          str_replace:
-            template: $front-$back
-            params:
-              $front: { get_param: web_name }
-              $back: { get_param: web_name_end }
-        cooldown: 60
-        minEntities: 2
-        maxEntities: 10
-        metadata:
-          cool_factor: "50"
-      launchConfiguration:
-        type: launch_server
-        args:
-          server:
-            name:
-              str_replace:
-                template: $front%index%$back
-                params:
-                  $front: { get_param: web_name }
-                  $back: { get_param: web_name_end }
-            flavorRef:
-              get_param: web_flavor
-            imageRef:
-              get_param: web_image
-            key_name: hop-2048
-            user_data: { get_param: salt_config_script }
-            metadata:
-              rax-heat: { get_param: "OS::stack_id" }
-              stack-name: { get_param: "OS::stack_name" }
-              hotness_factor: "100"
-          loadBalancers:
-            -
-              loadBalancerId: { get_resource: web_lb }
-              port: 443
   sphinxservers:
     type: 'OS::Heat::ResourceGroup'
     properties:
@@ -288,7 +337,58 @@ resources:
       metadata:
         rax-heat: { get_param: "OS::stack_id" }
         stack-name: { get_param: "OS::stack_name" }
-
+  sqlservers:
+    type: 'OS::Heat::ResourceGroup'
+    properties:
+      count:
+        get_param: sql_number
+      resource_def:
+        type: 'Rackspace::Cloud::Server'
+        properties:
+          flavor:
+            get_param: sql_flavor
+          name:
+            str_replace:
+              template: $front%index%$back
+              params:
+                $front: { get_param: sql_name }
+                $back: { get_param: sql_name_end }
+          key_name: hop-2048
+          image:
+            get_param: sql_image
+          user_data: { get_param: salt_config_script }
+          metadata:
+            rax-heat: { get_param: "OS::stack_id" }
+            stack-name: { get_param: "OS::stack_name" }
+  sql_lb:
+    type: "Rackspace::Cloud::LoadBalancer"
+    depends_on:
+      - sqlservers
+    properties:
+      name:
+        str_replace:
+          template: $front$back
+          params:
+            $front: { get_param: sql_name }
+            $back: { get_param: sql_name_end }
+      nodes:
+      - addresses: [ { get_attr: [sqlservers, privateIPv4] } ]
+        port: 3306
+        condition: enabled
+      healthMonitor:
+        type: CONNECT
+        delay: 10
+        timeout: 5
+        attemptsBeforeDeactivation: 3
+      port: 3306
+      protocol: MYSQL
+      algorithm: ROUND_ROBIN
+      virtualIps:
+      - type: SERVICENET
+        ipVersion: IPV4
+      metadata:
+        rax-heat: { get_param: "OS::stack_id" }
+        stack-name: { get_param: "OS::stack_name" }
   redisservers:
     type: 'OS::Heat::ResourceGroup'
     properties:
