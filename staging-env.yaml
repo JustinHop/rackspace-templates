@@ -178,29 +178,64 @@ parameters:
         description: 'Must be between 0 and 10 servers'
 
 resources:
-  webservers:
-    type: 'OS::Heat::ResourceGroup'
+  web_lb:
+    type: "Rackspace::Cloud::LoadBalancer"
     properties:
-      count: 
-        get_param: web_numbers
-      resource_def:
-        type: 'Rackspace::Cloud::Server'
-        properties:
-          name:
-            str_replace:
-              template: $front%index%$back
-              params:
-                $front: { get_param: web_name }
-                $back: { get_param: web_name_end }
-          flavor:
-            get_param: web_flavor
-          key_name: hop-2048
-          image:
-            get_param: web_image
-          user_data: { get_param: salt_config_script }
-          metadata:
-            rax-heat: { get_param: "OS::stack_id" }
-            stack-name: { get_param: "OS::stack_name" }
+      name:
+        str_replace:
+          template: $front$back
+          params:
+            $front: { get_param: web_name }
+            $back: { get_param: web_name_end }
+      nodes: []
+      port: 443
+      protocol: HTTPS
+      algorithm: ROUND_ROBIN
+      virtualIps:
+      - type: PUBLIC
+        ipVersion: IPV4
+      metadata:
+        rax-heat: { get_param: "OS::stack_id" }
+        stack-name: { get_param: "OS::stack_name" }
+  webservers:
+    type: 'Rackspace::AutoScale::Group'
+    properties:
+      groupConfiguration:
+        name: 
+          str_replace:
+            template: $front-$back
+            params:
+              $front: { get_param: web_name }
+              $back: { get_param: web_name_end }
+        cooldown: 60
+        minEntities: 2
+        maxEntities: 10
+        metadata:
+          cool_factor: "50"
+      launchConfiguration:
+        type: launch_server
+        args:
+          server:
+            name:
+              str_replace:
+                template: $front%index%$back
+                params:
+                  $front: { get_param: web_name }
+                  $back: { get_param: web_name_end }
+            flavorRef:
+              get_param: web_flavor
+            imageRef:
+              get_param: web_image
+            key_name: hop-2048
+            user_data: { get_param: salt_config_script }
+            metadata:
+              rax-heat: { get_param: "OS::stack_id" }
+              stack-name: { get_param: "OS::stack_name" }
+              hotness_factor: "100"
+          loadBalancers:
+            -
+              loadBalancerId: { get_resource: web_lb }
+              port: 443
   sphinxservers:
     type: 'OS::Heat::ResourceGroup'
     properties:
@@ -224,6 +259,36 @@ resources:
           metadata:
             rax-heat: { get_param: "OS::stack_id" }
             stack-name: { get_param: "OS::stack_name" }
+  sphinx_lb:
+    type: "Rackspace::Cloud::LoadBalancer"
+    depends_on:
+      - sphinxservers
+    properties:
+      name:
+        str_replace:
+          template: $front$back
+          params:
+            $front: { get_param: sphinx_name }
+            $back: { get_param: sphinx_name_end }
+      nodes:
+      - addresses: [ { get_attr: [sphinxservers, privateIPv4] } ]
+        port: 9312
+        condition: enabled
+      healthMonitor:
+        type: CONNECT
+        delay: 10
+        timeout: 5
+        attemptsBeforeDeactivation: 3
+      port: 9312
+      protocol: TCP_CLIENT_FIRST
+      algorithm: ROUND_ROBIN
+      virtualIps:
+      - type: SERVICENET
+        ipVersion: IPV4
+      metadata:
+        rax-heat: { get_param: "OS::stack_id" }
+        stack-name: { get_param: "OS::stack_name" }
+
   redisservers:
     type: 'OS::Heat::ResourceGroup'
     properties:
@@ -249,21 +314,15 @@ resources:
             stack-name: { get_param: "OS::stack_name" }
 
 outputs:
-  private_ips_web:
-    description: 'Web Internal IPs'
-    value:
-      get_attr:
-        - webservers
-        - accessIPv4
-  private_ips_redis:
+  public_ips_redis:
     description: 'Sphinx Internal IPs'
     value:
       get_attr:
         - redisservers
-        - accessIPv4
-  private_ips_redis:
+        - publicIPv4
+  public_ips_redis:
     description: 'Redis Internal IPs'
     value:
       get_attr:
         - redisservers
-        - accessIPv4
+        - publicIPv4

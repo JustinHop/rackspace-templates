@@ -16,18 +16,19 @@ parameters:
       reboot
 
   system_name:
-    description: base name for the web server instances
+    description: name for the server instance
     type: string
     default: http
 
   system_image:
     type: string
-    label: Apache Server OS Image
+    label: Server OS Image
     description: Operating system for VM
-    default: 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
+    default: '14.10 Base Image 2014-12-19 PVHVM'
     constraints:
       -
         allowed_values:
+          - '14.10 Base Image 2014-12-19 PVHVM'
           - 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
           - 'Ubuntu 14.10 (Utopic Unicorn)'
           - 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
@@ -38,7 +39,7 @@ parameters:
   system_flavor:
     type: string
     label: VM Flavor
-    description: Apache Server VM Flavor
+    description: VM Flavor
     default: '4 GB Performance'
     constraints:
       -
