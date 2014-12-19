@@ -66,8 +66,8 @@ parameters:
       -
         range:
           max: 5
-          min: 0
-        description: 'Must be between 0 and 5 servers'
+          min: 1
+        description: 'Must be between 1 and 5 servers'
   sql_name:
     description: base name for the web server instances
     type: string
@@ -220,7 +220,7 @@ parameters:
           - '8 GB Performance'
           - '15 GB Performance'
 
-  web_numbers:
+  web_number:
     default: 2
     label: 'Apache Servers'
     type: number
@@ -268,7 +268,7 @@ resources:
             $front: { get_param: web_name }
             $back: { get_param: web_name_end }
       nodes:
-      - addresses: [ { get_attr: [webservers, privateIPv4] } ]
+      - addresses: [ { get_attr: [webservers, accessIPv4] } ]
         port: 443
         condition: enabled
       healthMonitor:
@@ -320,14 +320,14 @@ resources:
             $front: { get_param: sphinx_name }
             $back: { get_param: sphinx_name_end }
       nodes:
-      - addresses: [ { get_attr: [sphinxservers, privateIPv4] } ]
+      - addresses: [ { get_attr: [sphinxservers, accessIPv4] } ]
         port: 9312
         condition: enabled
       healthMonitor:
         type: CONNECT
         delay: 10
-        timeout: 5
-        attemptsBeforeDeactivation: 3
+        timeout: 10
+        attemptsBeforeDeactivation: 2
       port: 9312
       protocol: TCP_CLIENT_FIRST
       algorithm: ROUND_ROBIN
@@ -372,7 +372,7 @@ resources:
             $front: { get_param: sql_name }
             $back: { get_param: sql_name_end }
       nodes:
-      - addresses: [ { get_attr: [sqlservers, privateIPv4] } ]
+      - addresses: [ { get_attr: [sqlservers, accessIPv4] } ]
         port: 3306
         condition: enabled
       healthMonitor:
@@ -414,15 +414,24 @@ resources:
             stack-name: { get_param: "OS::stack_name" }
 
 outputs:
-  public_ips_redis:
-    description: 'Sphinx Internal IPs'
-    value:
-      get_attr:
-        - redisservers
-        - publicIPv4
-  public_ips_redis:
-    description: 'Redis Internal IPs'
-    value:
-      get_attr:
-        - redisservers
-        - publicIPv4
+  web_resources:
+    description: "Web Server Details"
+    value: { get_attr: [ webservers, refs ] }
+  web_lb_resources:
+    description: "Web LB Details"
+    value: { get_attr: [ web_lb, refs ] }
+  sql_resources:
+    description: "SQL Server Details"
+    value: { get_attr: [ sqlservers, refs ] }
+  sql_lb_resources:
+    description: "SQL LB Details"
+    value: { get_attr: [ sql_lb, refs ] }
+  redis_resources:
+    description: "Redis Server Details"
+    value: { get_attr: [ redisservers, refs ] }
+  sphinx_resources:
+    description: "Sphinx Server Details"
+    value: { get_attr: [ sphinxservers, refs ] }
+  sphinx_lb_resources:
+    description: "Sphinx LB Details"
+    value: { get_attr: [ sphinx_lb, refs ] }
