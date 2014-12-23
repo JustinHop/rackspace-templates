@@ -1,6 +1,6 @@
 heat_template_version: 2013-05-23
 
-description: Single System
+description: Single Node System
 
 parameters:
 
@@ -18,13 +18,13 @@ parameters:
   system_name:
     description: name for the server instance
     type: string
-    default: jump2.sys.dev1.crowdrise.io
+    default: node1.search.stage1.crowdrise.io
 
   system_image:
     type: string
     label: Server OS Image
     description: Operating system for VM
-    default: 'Ubuntu 14.10 (Utopic Unicorn)'
+    default: 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
     constraints:
       -
         allowed_values:
@@ -40,7 +40,7 @@ parameters:
     type: string
     label: VM Flavor
     description: VM Flavor
-    default: '1GB Standard Instance'
+    default: '3.75 GB Compute v1'
     constraints:
       -
         allowed_values:
@@ -81,7 +81,7 @@ parameters:
           - '90 GB Performance'
 
 resources:
-  webserver:
+  server:
     type: 'Rackspace::Cloud::Server'
     properties:
       name: { get_param: system_name }
@@ -97,8 +97,8 @@ resources:
 
 outputs:
   private_ips_web:
-    description: 'Web Internal IPs'
+    description: 'Internal IPs'
     value:
       get_attr:
-        - webserver
+        - server
         - accessIPv4

@@ -268,8 +268,12 @@ resources:
             $front: { get_param: web_name }
             $back: { get_param: web_name_end }
       nodes:
-      - addresses: [ { get_attr: [webservers, accessIPv4] } ]
-        port: 443
+        -
+          addresses:
+            get_attr:
+              - webservers
+              - accessIPv4
+          port: 443
         condition: enabled
       healthMonitor:
         type: HTTPS
@@ -419,19 +423,16 @@ outputs:
     value: { get_attr: [ webservers, refs ] }
   web_lb_resources:
     description: "Web LB Details"
-    value: { get_attr: [ web_lb, refs ] }
+    value:
+      get_attr:
+        - web_lb
+        - PublicIp
   sql_resources:
     description: "SQL Server Details"
     value: { get_attr: [ sqlservers, refs ] }
-  sql_lb_resources:
-    description: "SQL LB Details"
-    value: { get_attr: [ sql_lb, refs ] }
   redis_resources:
     description: "Redis Server Details"
     value: { get_attr: [ redisservers, refs ] }
   sphinx_resources:
     description: "Sphinx Server Details"
     value: { get_attr: [ sphinxservers, refs ] }
-  sphinx_lb_resources:
-    description: "Sphinx LB Details"
-    value: { get_attr: [ sphinx_lb, refs ] }
