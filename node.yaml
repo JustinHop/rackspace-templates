@@ -40,7 +40,7 @@ parameters:
     type: string
     label: VM Flavor
     description: VM Flavor
-    default: '3.75 GB Compute v1'
+    default: '2 GB Performance'
     constraints:
       -
         allowed_values:
