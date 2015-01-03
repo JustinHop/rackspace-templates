@@ -18,13 +18,13 @@ parameters:
   system_name:
     description: name for the server instance
     type: string
-    default: jump2.sys.dev1.crowdrise.io
+    default: http3.www.prod1.crowdrise.io
 
   system_image:
     type: string
     label: Server OS Image
     description: Operating system for VM
-    default: 'Ubuntu 14.10 (Utopic Unicorn)'
+    default: 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
     constraints:
       -
         allowed_values:
@@ -40,7 +40,7 @@ parameters:
     type: string
     label: VM Flavor
     description: VM Flavor
-    default: '1GB Standard Instance'
+    default: '2GB Standard Instance'
     constraints:
       -
         allowed_values:
@@ -95,10 +95,3 @@ resources:
         rax-heat: { get_param: "OS::stack_id" }
         stack-name: { get_param: "OS::stack_name" }
 
-outputs:
-  private_ips_web:
-    description: 'Web Internal IPs'
-    value:
-      get_attr:
-        - webserver
-        - accessIPv4
