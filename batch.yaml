@@ -1,6 +1,6 @@
 heat_template_version: 2013-05-23
 
-description: Single System
+description: Batch processing system for php cronjobs
 
 parameters:
 
@@ -10,7 +10,7 @@ parameters:
     default: |
       #!/bin/bash -x
       exec 2>&1
-      exec 1>/tmp/bash-debug.log
+      exec 1>/var/log/userdata-debug.log
       ps auxwwef
       sleep 120
       echo after sleep
@@ -38,13 +38,13 @@ parameters:
   system_name:
     description: name for the server instance
     type: string
-    default: http3.www.prod1.crowdrise.io
+    default: batch1.www.prod1.crowdrise.io
 
   system_image:
     type: string
     label: Server OS Image
     description: Operating system for VM
-    default: 'Ubuntu 14.10 (Utopic Unicorn)'
+    default: 'Ubuntu 14.04 LTS (Trusty Tahr)'
     constraints:
       -
         allowed_values:
@@ -60,7 +60,7 @@ parameters:
     type: string
     label: VM Flavor
     description: VM Flavor
-    default: '2GB Standard Instance'
+    default: '2 GB General Purpose v1'
     constraints:
       -
         allowed_values:

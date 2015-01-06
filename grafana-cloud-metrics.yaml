@@ -36,19 +36,20 @@ parameter_groups:
   - label: 'Apache Settings'
     parameters:
       - apache_auth_user
+      - apache_auth_password
 
 parameters:
   image:
-    default: 'Ubuntu 14.04 LTS (Trusty Tahr)'
+    default: 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
     label: 'Operating System'
     type: string
     description: 'Server image that will be used'
     constraints:
       - description: 'supported os versions'
         allowed_values:
-          - 'Ubuntu 14.04 LTS (Trusty Tahr)'
+          - 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
   flavor:
-    default: '4GB Standard Instance'
+    default: '8 GB Performance'
     label: 'Server Size'
     type: string
     description: 'Cloud Server flavor (size) to use'
@@ -66,14 +67,19 @@ parameters:
           - '15GB Standard Instance'
           - '30GB Standard Instance'
   host_name:
-    default: grafana1.mon.prod1.crowdrise.io
+    default: 'grafana1.mon.prod1.crowdrise.io'
     type: string
     description: 'Server hostname'
     label: 'Server hostname'
+  apache_auth_password:
+    default: jalenr5
+    type: string
+    description: 'Password used to authenticate into nginx (which serves Grafana).'
+    label: 'Username'
   apache_auth_user:
     default: grafana
     type: string
-    description: 'User name used to authenticate into Apache (which serves Grafana).'
+    description: 'User name used to authenticate into nginx (which serves Grafana).'
     label: 'Username'
   es_version:
     default: '1.4.2'
@@ -106,9 +112,6 @@ outputs:
     description: 'Grafana auth user.'
     value:
       get_param: apache_auth_user
-  apache_auth_password:
-    description: 'Grafana auth password.'
-    value: { get_attr: [apache_auth_password, value ] }
   public_ip:
     description: IP Address
     value: { get_attr: [cloud_server, accessIPv4] }
@@ -116,11 +119,10 @@ outputs:
 resources:
   cloud_server:
     type: 'Rackspace::Cloud::Server'
-    depends_on: [ apache_auth_password ]
     properties:
       key_name: hop-2048
       flavor: { get_param: flavor }
-      name: { get_param: [host_name, value] }
+      name: 'grafana1.mon.prod1.crowdrise.io'
       image: { get_param: image }
       user_data_format: RAW
       config_drive: true
@@ -135,6 +137,13 @@ resources:
             echo after sleep
             ps auxwwef
             rm -f /var/lib/dpkg/lock
+            curl -L https://bootstrap.saltstack.com | sh -s -- -A master1.salt.prod1.crowdrise.io -U -P git 2015.2 2>&1 | tee /var/log/salt-bootstrap.log
+            ( salt-call saltutil.sync_all || true ) | tee -a /var/log/salt-sync.bootstrap.log
+            ( salt-call state.highstate || true ) | tee -a /var/log/salt1.bootstrap.log
+            ( salt-call state.highstate || true ) | tee -a /var/log/salt2.bootstrap.log
+            ( salt-call state.highstate || true ) | tee -a /var/log/salt3.bootstrap.log
+            mkdir -p /var/lib/cloud/data
+            hostname | tee /var/lib/cloud/data/previous-hostname
             export DEBIAN_FRONTEND=noninteractive
             echo debconf shared/accepted-oracle-license-v1-1 select true | debconf-set-selections
             echo debconf shared/accepted-oracle-license-v1-1 seen true | debconf-set-selections
@@ -209,7 +218,7 @@ resources:
               authentication_module: rax_auth
               authentication_class: BluefloodAuth
               urls:
-                - http://iad.metrics.api.rackspacecloud.com
+                - http://metrics.api.rackspacecloud.com
             EOL
             cat > /usr/share/nginx/grafana/config.js << EOL
             define(['settings'],
@@ -228,7 +237,7 @@ resources:
                   }
                 },
                 search: {
-                  max_results: 20
+                  max_results: 30
                 },
                 default_route: '/dashboard/file/default.json',
                 unsaved_changes_warning: true,
@@ -266,7 +275,7 @@ resources:
             pip install rackspace-monitoring-cli
             service rackspace-monitoring-agent stop
             echo "iid-datasource-none" > /var/lib/cloud/data/instance-id
-            rackspace-monitoring-agent --setup --username rax_username --apikey rax_apikey --production
+            timeout 15 rackspace-monitoring-agent --setup --username rax_username --apikey rax_apikey --production --detach
             service rackspace-monitoring-agent start
             raxmon-entities-list > /tmp/all_entities.txt
             sed -i -e "s/cloud_server/cloud-server/g" /tmp/all_entities.txt
@@ -284,12 +293,7 @@ resources:
             es_version: { get_param: es_version }
             gr_version: { get_param: gr_version }
             apache_auth_user: { get_param: apache_auth_user }
-            apache_auth_password: { get_attr: [apache_auth_password, value ] }
+            apache_auth_password: { get_param: apache_auth_password }
             rax_tenant: { get_param: rax_tenant }
             rax_username: { get_param: rax_username }
             rax_apikey: { get_param: rax_apikey }
-  apache_auth_password:
-    type: 'OS::Heat::RandomString'
-    properties:
-      length: 16
-      sequence: lettersdigits
