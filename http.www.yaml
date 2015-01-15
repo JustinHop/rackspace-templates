@@ -1,6 +1,6 @@
 heat_template_version: 2013-05-23
 
-description: Single Percona System
+description: Front staging frontends
 
 parameters:
 
@@ -10,13 +10,11 @@ parameters:
     default: |
       #!/bin/bash -x
       exec 2>&1
-      exec 1>/var/log/bootstrap-debug.log
+      exec 1>/var/log/userdata-debug.log
       ps auxwwef
       sleep 120
       echo after sleep
       ps auxwwef
-      userdel ubuntu
-      groupdel ubuntu
       rm -f /var/lib/dpkg/lock
       mkdir -p /var/lib/cloud/data
       hostname | tee /var/lib/cloud/data/previous-hostname
@@ -24,9 +22,8 @@ parameters:
       curl -L https://bootstrap.pypa.io/get-pip.py | python
       sleep 5s
       pip install pyrax
-      curl -L https://bootstrap.saltstack.com | sh -s -- -A master1.salt.prod1.crowdrise.io -U -P git 2014.7 2>&1 | tee -a /var/log/bootstrap.log
+      curl -L https://bootstrap.saltstack.com | sh -s -- -A master1.salt.prod1.crowdrise.io -U -P git 2014.7 2>&1 | tee /var/log/bootstrap.log
       ( salt-call saltutil.sync_all || true ) | tee -a /var/log/bootstrap.log
-      ( salt-call state.top tops/mintop.sls || true ) | tee -a /var/log/bootstrap.log
       ( salt-call state.highstate || true ) | tee -a /var/log/bootstrap.log
       service salt-minion stop
       rm -rf /var/cache/salt
@@ -41,13 +38,13 @@ parameters:
   system_name:
     description: name for the server instance
     type: string
-    default: sql2.percona.prod1.crowdrise.io
+    default: http1.www.stage1.crowdrise.io
 
   system_image:
     type: string
     label: Server OS Image
     description: Operating system for VM
-    default: 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
+    default: 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
     constraints:
       -
         allowed_values:
@@ -63,7 +60,7 @@ parameters:
     type: string
     label: VM Flavor
     description: VM Flavor
-    default: '60 GB I/O v1'
+    default: '30 GB Performance'
     constraints:
       -
         allowed_values:
@@ -104,10 +101,23 @@ parameters:
           - '90 GB Performance'
 
 resources:
-  server:
+  webserver:
     type: 'Rackspace::Cloud::Server'
     properties:
-      name: { get_param: system_name }
+      name: http03.www.prod1.crowdrise.io
+      flavor:
+        get_param: system_flavor
+      key_name: hop-2048
+      image:
+        get_param: system_image
+      user_data: { get_param: salt_config_script }
+      metadata:
+        rax-heat: { get_param: "OS::stack_id" }
+        stack-name: { get_param: "OS::stack_name" }
+  webserver1:
+    type: 'Rackspace::Cloud::Server'
+    properties:
+      name: http04.www.prod1.crowdrise.io
       flavor:
         get_param: system_flavor
       key_name: hop-2048
@@ -118,10 +128,3 @@ resources:
         rax-heat: { get_param: "OS::stack_id" }
         stack-name: { get_param: "OS::stack_name" }
 
-outputs:
-  private_ips_web:
-    description: 'Internal IPs'
-    value:
-      get_attr:
-        - server
-        - accessIPv4

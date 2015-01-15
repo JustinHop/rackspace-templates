@@ -8,26 +8,50 @@ parameters:
     description: User Data script to configure salt and get it going
     type: string
     default: |
-      #!/bin/bash -v
-      curl -L https://bootstrap.saltstack.com | sh -s -- -A master1.salt.prod1.crowdrise.io -U -P git 2014.7 2>&1 | tee /var/log/bootstrap.log
+      #!/bin/bash -x
+      exec 2>&1
+      exec 1>/var/log/bootstrap-debug.log
+      ps auxwwef
+      sleep 120
+      echo after sleep
+      ps auxwwef
+      userdel ubuntu
+      groupdel ubuntu
+      rm -f /var/lib/dpkg/lock
+      mkdir -p /var/lib/cloud/data
+      hostname | tee /var/lib/cloud/data/previous-hostname
+      export DEBIAN_FRONTEND=noninteractive
+      curl -L https://bootstrap.pypa.io/get-pip.py | python
+      sleep 5s
+      pip install pyrax
+      curl -L https://bootstrap.saltstack.com | sh -s -- -A master1.salt.prod1.crowdrise.io -U -P git 2014.7 2>&1 | tee -a /var/log/bootstrap.log
+      ( salt-call saltutil.sync_all || true ) | tee -a /var/log/bootstrap.log
+      ( salt-call state.top tops/mintop.sls || true ) | tee -a /var/log/bootstrap.log
+      ( salt-call state.highstate || true ) | tee -a /var/log/bootstrap.log
+      service salt-minion stop
+      rm -rf /var/cache/salt
+      service salt-minion start
       ( salt-call state.highstate || true ) | tee -a /var/log/bootstrap.log
       ( salt-call state.highstate || true ) | tee -a /var/log/bootstrap.log
-      ( salt-call state.highstate || true ) | tee -a /var/log/bootstrap.log
-      reboot
+      if ! [ -f /var/log/firstboot ]; then
+        touch /var/log/firstboot
+        reboot
+      fi
 
   system_name:
-    description: base name for the web server instances
+    description: name for the server instance
     type: string
-    default: test1.sys.prod1.crowdrise.io
+    default: syslog1.sys.prod1.crowdrise.io
 
   system_image:
     type: string
-    label: Apache Server OS Image
+    label: Server OS Image
     description: Operating system for VM
     default: 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
     constraints:
       -
         allowed_values:
+          - '14.10 Base Image 2014-12-19 PVHVM'
           - 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
           - 'Ubuntu 14.10 (Utopic Unicorn)'
           - 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
@@ -38,8 +62,8 @@ parameters:
   system_flavor:
     type: string
     label: VM Flavor
-    description: Server VM Flavor
-    default: '2GB Standard Instance'
+    description: VM Flavor
+    default: '4 GB General Purpose v1'
     constraints:
       -
         allowed_values:
@@ -80,7 +104,7 @@ parameters:
           - '90 GB Performance'
 
 resources:
-  linux_system:
+  webserver:
     type: 'Rackspace::Cloud::Server'
     properties:
       name: { get_param: system_name }
@@ -94,18 +118,3 @@ resources:
         rax-heat: { get_param: "OS::stack_id" }
         stack-name: { get_param: "OS::stack_name" }
 
-  dns_record:
-    type: "Rackspace::Cloud::DNS"
-    depends_on: linux_system
-    properties:
-      emailAddress: "hop@crowdrise.com"
-      name: crowdrise.io
-      records: [{"name": { get_attr: [linux_system, name] }, "data": { get_attr: [linux_system, accessIPv4] }, "type": "A" }]
-
-outputs:
-  linux_system:
-    description: 'Internal IPs'
-    value:
-      get_attr:
-        - linux_system
-        - accessIPv4

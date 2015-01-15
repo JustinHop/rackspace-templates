@@ -1,6 +1,6 @@
 heat_template_version: 2013-05-23
 
-description: Single System
+description: Test System
 
 parameters:
 
@@ -41,13 +41,13 @@ parameters:
   system_name:
     description: name for the server instance
     type: string
-    default: http3.www.prod1.crowdrise.io
+    default: test1.www.prod1.crowdrise.io
 
   system_image:
     type: string
     label: Server OS Image
     description: Operating system for VM
-    default: 'Ubuntu 14.10 (Utopic Unicorn)'
+    default: 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
     constraints:
       -
         allowed_values:
@@ -63,7 +63,7 @@ parameters:
     type: string
     label: VM Flavor
     description: VM Flavor
-    default: '2GB Standard Instance'
+    default: '3.75 GB Compute v1'
     constraints:
       -
         allowed_values:

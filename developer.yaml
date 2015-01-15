@@ -1,6 +1,6 @@
 heat_template_version: 2013-05-23
 
-description: Single Percona System
+description: Developer.crowdrise.io System
 
 parameters:
 
@@ -41,13 +41,13 @@ parameters:
   system_name:
     description: name for the server instance
     type: string
-    default: sql2.percona.prod1.crowdrise.io
+    default: http1.developer.prod1.crowdrise.io
 
   system_image:
     type: string
     label: Server OS Image
     description: Operating system for VM
-    default: 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
+    default: 'Ubuntu 14.10 (Utopic Unicorn)'
     constraints:
       -
         allowed_values:
@@ -63,7 +63,7 @@ parameters:
     type: string
     label: VM Flavor
     description: VM Flavor
-    default: '60 GB I/O v1'
+    default: '1GB Standard Instance'
     constraints:
       -
         allowed_values:
@@ -104,7 +104,7 @@ parameters:
           - '90 GB Performance'
 
 resources:
-  server:
+  CloudServer:
     type: 'Rackspace::Cloud::Server'
     properties:
       name: { get_param: system_name }
@@ -119,9 +119,59 @@ resources:
         stack-name: { get_param: "OS::stack_name" }
 
 outputs:
-  private_ips_web:
-    description: 'Internal IPs'
+  accessIPv4:
+    description: The manually assigned alternative public IPv4 address of the server.
     value:
-      get_attr:
-        - server
-        - accessIPv4
+      get_attr: ["CloudServer", "accessIPv4"]
+  accessIPv6:
+    description: The manually assigned alternative public IPv6 address of the server.
+    value:
+      get_attr: ["CloudServer", "accessIPv6"]
+  addresses:
+    description: A dict of all network addresses with corresponding port_id.
+    value:
+      get_attr: ["CloudServer", "addresses"]
+  admin_pass:
+    description: The administrator password for the server.
+    value:
+      get_attr: ["CloudServer", "admin_pass"]
+  console_urls:
+    description: 'URLs of server''s consoles. To get a specific console
+      type, the requested type can be specified as parameter to the get_attr function,
+      e.g. get_attr: [ <server>, console_urls, novnc ]. Currently supported types
+      are novnc, xvpvnc, spice-html5, rdp-html5, serial.'
+    value:
+      get_attr: ["CloudServer", "console_urls"]
+  distro:
+    description: The Linux distribution on the server.
+    value:
+      get_attr: ["CloudServer", "distro"]
+  first_address:
+    description: 'Convenience attribute to fetch the first assigned
+      network address, or an empty string if nothing has been assigned at this time.
+      Result may not be predictable if the server has addresses from more than one
+      network.'
+    value:
+      get_attr: ["CloudServer", "first_address"]
+  instance_name:
+    description: AWS compatible instance name.
+    value:
+      get_attr: ["CloudServer", "instance_name"]
+  name:
+    description: Name of the server.
+    value:
+      get_attr: ["CloudServer", "name"]
+  networks:
+    description: 'A dict of assigned network addresses of the form: {"public":
+      [ip1, ip2...], "private": [ip3, ip4]}.'
+    value:
+      get_attr: ["CloudServer", "networks"]
+  privateIPv4:
+    description: The private IPv4 address of the server.
+    value:
+      get_attr: ["CloudServer", "privateIPv4"]
+  show:
+    description: A dict of all server details as returned by the API.
+    value:
+      get_attr: ["CloudServer", "show"]
+

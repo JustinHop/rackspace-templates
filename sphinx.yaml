@@ -1,6 +1,6 @@
 heat_template_version: 2013-05-23
 
-description: Single Percona System
+description: Sphinx1
 
 parameters:
 
@@ -38,16 +38,11 @@ parameters:
         reboot
       fi
 
-  system_name:
-    description: name for the server instance
-    type: string
-    default: sql2.percona.prod1.crowdrise.io
-
   system_image:
     type: string
     label: Server OS Image
     description: Operating system for VM
-    default: 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
+    default: 'Ubuntu 14.10 (Utopic Unicorn)'
     constraints:
       -
         allowed_values:
@@ -63,7 +58,7 @@ parameters:
     type: string
     label: VM Flavor
     description: VM Flavor
-    default: '60 GB I/O v1'
+    default: '4GB Standard Instance'
     constraints:
       -
         allowed_values:
@@ -104,24 +99,39 @@ parameters:
           - '90 GB Performance'
 
 resources:
-  server:
-    type: 'Rackspace::Cloud::Server'
+  webservers:
+    type: 'OS::Heat::ResourceGroup'
     properties:
-      name: { get_param: system_name }
-      flavor:
-        get_param: system_flavor
-      key_name: hop-2048
-      image:
-        get_param: system_image
-      user_data: { get_param: salt_config_script }
-      metadata:
-        rax-heat: { get_param: "OS::stack_id" }
-        stack-name: { get_param: "OS::stack_name" }
+      count: 2
+      resource_def:
+        type: 'Rackspace::Cloud::Server'
+        properties:
+          name: sphinx%index%.search.prod1.crowdrise.io
+          flavor:
+            get_param: system_flavor
+          key_name: hop-2048
+          image:
+            get_param: system_image
+          user_data: { get_param: salt_config_script }
+          metadata:
+            rax-heat: { get_param: "OS::stack_id" }
+            stack-name: { get_param: "OS::stack_name" }
 
 outputs:
-  private_ips_web:
-    description: 'Internal IPs'
+  addresses:
+    description: 'Network Addresses'
     value:
-      get_attr:
-        - server
-        - accessIPv4
+      get_attr: [ webservers, addresses ]
+  flavorous:
+    description: 'Flavor'
+    value:
+      get_attr: [ webservers, flavor ]
+  imageous:
+    description: 'Image'
+    value:
+      get_attr: [ webservers, image ]
+  meta:
+    description: 'Meta Data'
+    value:
+      get_attr: [ webservers, metadata ]
+
