@@ -1,6 +1,6 @@
 heat_template_version: 2013-05-23
 
-description: Front staging frontends
+description: Batch Processing
 
 parameters:
 
@@ -38,29 +38,29 @@ parameters:
   system_name:
     description: name for the server instance
     type: string
-    default: http1.www.stage1.crowdrise.io
+    default: batch1.www.prod1.crowdrise.io
 
   system_image:
     type: string
     label: Server OS Image
     description: Operating system for VM
-    default: 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
+    default: 'Ubuntu 14.10 (Utopic Unicorn) (PV)'
     constraints:
       -
         allowed_values:
           - '14.10 Base Image 2014-12-19 PVHVM'
           - 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
-          - 'Ubuntu 14.10 (Utopic Unicorn)'
+          - 'Ubuntu 14.10 (Utopic Unicorn) (PV)'
           - 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
-          - 'Ubuntu 14.04 LTS (Trusty Tahr)'
+          - 'Ubuntu 14.04 LTS (Trusty Tahr) (PV)'
           - 'Ubuntu 12.04 LTS (Precise Pangolin) (PVHVM)'
-          - 'Ubuntu 12.04 LTS (Precise Pangolin)'
+          - 'Ubuntu 12.04 LTS (Precise Pangolin) (PV)'
 
   system_flavor:
     type: string
     label: VM Flavor
     description: VM Flavor
-    default: '30 GB Performance'
+    default: '4GB Standard Instance'
     constraints:
       -
         allowed_values:
@@ -104,7 +104,7 @@ resources:
   webserver:
     type: 'Rackspace::Cloud::Server'
     properties:
-      name: http03.www.prod1.crowdrise.io
+      name: { get_param: system_name }
       flavor:
         get_param: system_flavor
       key_name: hop-2048
@@ -114,17 +114,3 @@ resources:
       metadata:
         rax-heat: { get_param: "OS::stack_id" }
         stack-name: { get_param: "OS::stack_name" }
-  webserver1:
-    type: 'Rackspace::Cloud::Server'
-    properties:
-      name: http04.www.prod1.crowdrise.io
-      flavor:
-        get_param: system_flavor
-      key_name: hop-2048
-      image:
-        get_param: system_image
-      user_data: { get_param: salt_config_script }
-      metadata:
-        rax-heat: { get_param: "OS::stack_id" }
-        stack-name: { get_param: "OS::stack_name" }
-
