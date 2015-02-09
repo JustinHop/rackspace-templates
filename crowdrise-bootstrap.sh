@@ -11,9 +11,10 @@ rm -f /var/lib/dpkg/lock
 mkdir -p /var/lib/cloud/data
 hostname | tee /var/lib/cloud/data/previous-hostname
 export DEBIAN_FRONTEND=noninteractive
+apt-get install python-dev build-essential
 curl -L https://bootstrap.pypa.io/get-pip.py | python
 sleep 5s
-pip install pyrax
+pip install pyrax mako
 curl -L https://bootstrap.saltstack.com | sh -s -- -A master1.salt.prod1.crowdrise.io -U -P git 2015.2 2>&1 | tee -a /var/log/bootstrap.log
 sleep 1m
 service salt-minion restart
