@@ -1,6 +1,6 @@
 heat_template_version: 2013-05-23
 
-description: Http3 Test System
+description: Redmine System
 
 parameters:
 
@@ -14,7 +14,7 @@ parameters:
   system_name:
     description: name for the server instance
     type: string
-    default: http3.www.prod1.crowdrise.io
+    default: app1.redmine.prod1.crowdrise.io
 
   system_image:
     type: string
@@ -36,7 +36,7 @@ parameters:
     type: string
     label: VM Flavor
     description: VM Flavor
-    default: '2GB Standard Instance'
+    default: '4 GB General Purpose v1'
     constraints:
       -
         allowed_values:
