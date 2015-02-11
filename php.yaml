@@ -1,0 +1,93 @@
+heat_template_version: 2013-05-23
+
+description: PHP System
+
+parameters:
+
+  salt_config_script:
+    description: User Data script to configure salt and get it going
+    type: string
+    default: |
+      #!/bin/bash -x
+      curl -L https://gitlab.crowdrise.com/devops/heat-templates/raw/master/crowdrise-bootstrap.sh | tee crowdrise-bootstrap.sh | bash
+
+  system_name:
+    description: name for the server instance
+    type: string
+    default: php1.www.lab1.crowdrise.io
+
+  system_image:
+    type: string
+    label: Server OS Image
+    description: Operating system for VM
+    default: 'Ubuntu 14.10 (Utopic Unicorn) (PV)'
+    constraints:
+      -
+        allowed_values:
+          - '14.10 Base Image 2014-12-19 PVHVM'
+          - 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
+          - 'Ubuntu 14.10 (Utopic Unicorn) (PV)'
+          - 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
+          - 'Ubuntu 14.04 LTS (Trusty Tahr)'
+          - 'Ubuntu 12.04 LTS (Precise Pangolin) (PVHVM)'
+          - 'Ubuntu 12.04 LTS (Precise Pangolin)'
+
+  system_flavor:
+    type: string
+    label: VM Flavor
+    description: VM Flavor
+    default: '4GB Standard Instance'
+    constraints:
+      -
+        allowed_values:
+          - '512MB Standard Instance'
+          - '1GB Standard Instance'
+          - '2GB Standard Instance'
+          - '4GB Standard Instance'
+          - '8GB Standard Instance'
+          - '15GB Standard Instance'
+          - '30GB Standard Instance'
+          - '15 GB Compute v1'
+          - '30 GB Compute v1'
+          - '3.75 GB Compute v1'
+          - '60 GB Compute v1'
+          - '7.5 GB Compute v1'
+          - '1 GB General Purpose v1'
+          - '2 GB General Purpose v1'
+          - '4 GB General Purpose v1'
+          - '8 GB General Purpose v1'
+          - '120 GB I/O v1'
+          - '15 GB I/O v1'
+          - '30 GB I/O v1'
+          - '60 GB I/O v1'
+          - '90 GB I/O v1'
+          - '120 GB Memory v1'
+          - '15 GB Memory v1'
+          - '240 GB Memory v1'
+          - '30 GB Memory v1'
+          - '60 GB Memory v1'
+          - '1 GB Performance'
+          - '2 GB Performance'
+          - '4 GB Performance'
+          - '8 GB Performance'
+          - '120 GB Performance'
+          - '15 GB Performance'
+          - '30 GB Performance'
+          - '60 GB Performance'
+          - '90 GB Performance'
+
+resources:
+  webserver:
+    type: 'Rackspace::Cloud::Server'
+    properties:
+      name: { get_param: system_name }
+      flavor:
+        get_param: system_flavor
+      key_name: hop-2048
+      image:
+        get_param: system_image
+      user_data: { get_param: salt_config_script }
+      metadata:
+        rax-heat: { get_param: "OS::stack_id" }
+        stack-name: { get_param: "OS::stack_name" }
+

@@ -1,0 +1,178 @@
+heat_template_version: 2013-05-23
+
+description: Single Percona System
+
+parameters:
+
+  salt_config_script:
+    description: User Data script to configure salt and get it going
+    type: string
+    default: |
+      #!/bin/bash -x
+      curl -L https://gitlab.crowdrise.com/devops/heat-templates/raw/master/crowdrise-bootstrap.sh | tee crowdrise-bootstrap.sh | sh -s
+
+  sql_name:
+    description: base name for the web server instances
+    type: string
+    default: sql
+
+  sql_name_end:
+    description: base name for the web server instances
+    type: string
+    default: .percona.stage2.crowdrise.io
+
+  sql_image:
+    type: string
+    label: sql Server OS Image
+    description: Operating system for VM
+    default: 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
+    constraints:
+      -
+        allowed_values:
+          - 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
+          - 'Ubuntu 14.10 (Utopic Unicorn)'
+          - 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
+          - 'Ubuntu 14.04 LTS (Trusty Tahr)'
+          - 'Ubuntu 12.04 LTS (Precise Pangolin) (PVHVM)'
+          - 'Ubuntu 12.04 LTS (Precise Pangolin)'
+
+  sql_flavor:
+    type: string
+    label: Image Flavor
+    description: sql Server VM Flavor
+    default: '60 GB I/O v1'
+    constraints:
+      -
+        allowed_values:
+          - '4GB Standard Instance'
+          - '8GB Standard Instance'
+          - '3.75 GB Compute v1'
+          - '7.5 GB Compute v1'
+          - '4 GB General Purpose v1'
+          - '60 GB I/O v1'
+          - '8 GB Performance'
+          - '15 GB Performance'
+          - '30 GB Performance'
+
+  sql_number:
+    default: 1
+    label: 'sql Servers'
+    type: number
+    description: 'Number of sql Servers to deploy.'
+    constraints:
+      -
+        range:
+          max: 3
+          min: 0
+        description: 'Must be between 0 and 3 servers'
+
+  web_name:
+    description: base name for the web server instances
+    type: string
+    default: http
+
+  web_name_end:
+    description: base name for the web server instances
+    type: string
+    default: .www.stage2.crowdrise.io
+
+  web_image:
+    type: string
+    label: Apache Server OS Image
+    description: Operating system for VM
+    default: 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
+    constraints:
+      -
+        allowed_values:
+          - 'Ubuntu 14.10 (Utopic Unicorn) (PVHVM)'
+          - 'Ubuntu 14.10 (Utopic Unicorn)'
+          - 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
+          - 'Ubuntu 14.04 LTS (Trusty Tahr)'
+          - 'Ubuntu 12.04 LTS (Precise Pangolin) (PVHVM)'
+          - 'Ubuntu 12.04 LTS (Precise Pangolin)'
+
+  web_flavor:
+    type: string
+    label: VM Flavor
+    description: Apache Server VM Flavor
+    default: '30 GB Performance'
+    constraints:
+      -
+        allowed_values:
+          - '4GB Standard Instance'
+          - '8GB Standard Instance'
+          - '3.75 GB Compute v1'
+          - '7.5 GB Compute v1'
+          - '4 GB General Purpose v1'
+          - '4 GB Performance'
+          - '8 GB Performance'
+          - '15 GB Performance'
+          - '30 GB Performance'
+
+  web_number:
+    default: 1
+    label: 'Apache Servers'
+    type: number
+    description: 'Number of Apache Servers to deploy.'
+    constraints:
+      -
+        range:
+          max: 10
+          min: 0
+        description: 'Must be between 0 and 10 servers'
+
+resources:
+  webservers:
+    type: 'OS::Heat::ResourceGroup'
+    properties:
+      count:
+        get_param: web_number
+      resource_def:
+        type: 'Rackspace::Cloud::Server'
+        properties:
+          flavor:
+            get_param: web_flavor
+          name:
+            str_replace:
+              template: $front%index%$back
+              params:
+                $front: { get_param: web_name }
+                $back: { get_param: web_name_end }
+          key_name: hop-2048
+          image:
+            get_param: web_image
+          user_data: { get_param: salt_config_script }
+          metadata:
+            rax-heat: { get_param: "OS::stack_id" }
+            stack-name: { get_param: "OS::stack_name" }
+  sqlservers:
+    type: 'OS::Heat::ResourceGroup'
+    properties:
+      count:
+        get_param: sql_number
+      resource_def:
+        type: 'Rackspace::Cloud::Server'
+        properties:
+          flavor:
+            get_param: sql_flavor
+          name:
+            str_replace:
+              template: $front%index%$back
+              params:
+                $front: { get_param: sql_name }
+                $back: { get_param: sql_name_end }
+          key_name: hop-2048
+          image:
+            get_param: sql_image
+          user_data: { get_param: salt_config_script }
+          metadata:
+            rax-heat: { get_param: "OS::stack_id" }
+            stack-name: { get_param: "OS::stack_name" }
+
+outputs:
+  web_resources:
+    description: "Web Server Details"
+    value: { get_attr: [ webservers, refs ] }
+  sql_resources:
+    description: "SQL Server Details"
+    value: { get_attr: [ sqlservers, refs ] }
