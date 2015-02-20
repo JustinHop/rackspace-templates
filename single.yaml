@@ -9,12 +9,12 @@ parameters:
     type: string
     default: |
       #!/bin/bash -x
-      curl -L https://gitlab.crowdrise.com/devops/heat-templates/raw/master/crowdrise-bootstrap.sh | tee crowdrise-bootstrap.sh | sh -s
+      curl -L https://gitlab.crowdrise.com/devops/heat-templates/raw/master/crowdrise-bootstrap.sh | tee crowdrise-bootstrap.sh | bash
 
   system_name:
     description: name for the server instance
     type: string
-    default: test1.www.prod1.crowdrise.io
+    default: test6.net.dev1.crowdrise.io
 
   system_image:
     type: string
@@ -36,7 +36,7 @@ parameters:
     type: string
     label: VM Flavor
     description: VM Flavor
-    default: '3.75 GB Compute v1'
+    default: '4GB Standard Instance'
     constraints:
       -
         allowed_values:
@@ -87,7 +87,13 @@ resources:
       image:
         get_param: system_image
       user_data: { get_param: salt_config_script }
+      networks:
+        -
+          uuid: 00000000-0000-0000-0000-000000000000
+        -
+          uuid: 11111111-1111-1111-1111-111111111111
+        -
+          uuid: e20d3d8f-61d0-406a-aa4b-a658fdf27034
       metadata:
         rax-heat: { get_param: "OS::stack_id" }
         stack-name: { get_param: "OS::stack_name" }
-
