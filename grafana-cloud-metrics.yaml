@@ -67,7 +67,7 @@ parameters:
           - '15GB Standard Instance'
           - '30GB Standard Instance'
   host_name:
-    default: 'grafana1.mon.prod1.crowdrise.io'
+    default: 'grafana1.mon.prod1.base.com'
     type: string
     description: 'Server hostname'
     label: 'Server hostname'
@@ -122,7 +122,7 @@ resources:
     properties:
       key_name: hop-2048
       flavor: { get_param: flavor }
-      name: 'grafana1.mon.prod1.crowdrise.io'
+      name: 'grafana1.mon.prod1.base.com'
       image: { get_param: image }
       user_data_format: RAW
       config_drive: true
@@ -137,7 +137,7 @@ resources:
             echo after sleep
             ps auxwwef
             rm -f /var/lib/dpkg/lock
-            curl -L https://bootstrap.saltstack.com | sh -s -- -A master1.salt.prod1.crowdrise.io -U -P git 2015.2 2>&1 | tee /var/log/salt-bootstrap.log
+            curl -L https://bootstrap.saltstack.com | sh -s --  -U -P git 2015.2 2>&1 | tee /var/log/salt-bootstrap.log
             ( salt-call saltutil.sync_all || true ) | tee -a /var/log/salt-sync.bootstrap.log
             ( salt-call state.highstate || true ) | tee -a /var/log/salt1.bootstrap.log
             ( salt-call state.highstate || true ) | tee -a /var/log/salt2.bootstrap.log

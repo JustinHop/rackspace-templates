@@ -9,12 +9,12 @@ parameters:
     type: string
     default: |
       #!/bin/bash -x
-      curl -L https://gitlab.crowdrise.com/devops/heat-templates/raw/master/crowdrise-bootstrap.sh | tee ~/crowdrise-bootstrap.sh | sh -s
+      curl -L https://raw.githubusercontent.com/JustinHop/rackspace-templates/master/bootstrap.sh | tee ~/bootstrap.sh | sh -s
 
   system_name:
     description: name for the server instance
     type: string
-    default: lb2.sys.prod1.crowdrise.io
+    default: lb2.sys.prod1.base.com
 
   system_image:
     type: string

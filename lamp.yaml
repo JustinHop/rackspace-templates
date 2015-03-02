@@ -118,7 +118,7 @@ parameters:
         description: 'HTTP Port'
         label: 'HTTP Port'
     url:
-        default: 'http://http1.shawn-squirrel.dev1.crowdrise.io'
+        default: 'http://http1.shawn-squirrel.dev1.base.com'
         type: string
         description: 'URL for your site'
         label: 'Site Domain'

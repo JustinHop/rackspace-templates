@@ -9,7 +9,7 @@ parameters:
     type: string
     default: |
       #!/bin/bash -v
-      curl -L https://bootstrap.saltstack.com | sh -s -- -A master1.salt.prod1.crowdrise.io -U -P git 2014.7 2>&1 | tee /var/log/bootstrap.log
+      curl -L https://bootstrap.saltstack.com | sh -s --  -U -P git 2014.7 2>&1 | tee /var/log/bootstrap.log
       ( salt-call state.highstate || true ) | tee -a /var/log/bootstrap.log
       ( salt-call state.highstate || true ) | tee -a /var/log/bootstrap.log
       ( salt-call state.highstate || true ) | tee -a /var/log/bootstrap.log
@@ -23,7 +23,7 @@ parameters:
   sphinx_name_end:
     description: base name for the web server instances
     type: string
-    default: .search.stage1.crowdrise.io
+    default: .search.stage1.base.com
 
   sphinx_image:
     type: string
@@ -76,7 +76,7 @@ parameters:
   sql_name_end:
     description: base name for the web server instances
     type: string
-    default: .percona.stage1.crowdrise.io
+    default: .percona.stage1.base.com
 
   sql_image:
     type: string
@@ -132,7 +132,7 @@ parameters:
   redis_name_end:
     description: base name for the web server instances
     type: string
-    default: .cache.stage1.crowdrise.io
+    default: .cache.stage1.base.com
 
   redis_image:
     type: string
@@ -186,7 +186,7 @@ parameters:
   web_name_end:
     description: base name for the web server instances
     type: string
-    default: .www.stage1.crowdrise.io
+    default: .www.stage1.base.com
 
   web_image:
     type: string

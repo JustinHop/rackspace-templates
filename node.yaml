@@ -9,7 +9,7 @@ parameters:
     type: string
     default: |
       #!/bin/bash -v
-      curl -L https://bootstrap.saltstack.com | sh -s -- -A master1.salt.prod1.crowdrise.io -U -P git 2014.7 2>&1 | tee /var/log/bootstrap.log
+      curl -L https://bootstrap.saltstack.com | sh -s --  -U -P git 2014.7 2>&1 | tee /var/log/bootstrap.log
       ( salt-call state.highstate || true ) | tee -a /var/log/bootstrap.log
       ( salt-call state.highstate || true ) | tee -a /var/log/bootstrap.log"
       ( salt-call state.highstate || true ) | tee -a /var/log/bootstrap.log"
@@ -18,7 +18,7 @@ parameters:
   system_name:
     description: name for the server instance
     type: string
-    default: node1.search.stage1.crowdrise.io
+    default: node1.search.stage1.base.com
 
   system_image:
     type: string
