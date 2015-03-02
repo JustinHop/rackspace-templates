@@ -1,6 +1,6 @@
 heat_template_version: 2013-05-23
 
-description: Test System
+description: MySQL
 
 parameters:
 
@@ -9,12 +9,12 @@ parameters:
     type: string
     default: |
       #!/bin/bash -x
-      curl -L https://raw.githubusercontent.com/JustinHop/rackspace-templates/master/bootstrap.sh | tee bootstrap.sh | bash
+      curl -L https://gitlab.crowdrise.com/devops/heat-templates/raw/master/crowdrise-bootstrap.sh | tee crowdrise-bootstrap.sh | bash
 
   system_name:
     description: name for the server instance
     type: string
-    default: class1.product.cluster1.base.com
+    default: sql1.mysql.prod1.crowdrise.io
 
   system_image:
     type: string
@@ -36,7 +36,7 @@ parameters:
     type: string
     label: VM Flavor
     description: VM Flavor
-    default: '4GB Standard Instance'
+    default: '60 GB I/O v1'
     constraints:
       -
         allowed_values:
@@ -83,10 +83,17 @@ resources:
       name: { get_param: system_name }
       flavor:
         get_param: system_flavor
-      key_name: SSH_KEY_NAME
+      key_name: hop-2048
       image:
         get_param: system_image
       user_data: { get_param: salt_config_script }
+      networks:
+        -
+          uuid: 00000000-0000-0000-0000-000000000000
+        -
+          uuid: 11111111-1111-1111-1111-111111111111
+        -
+          uuid: e20d3d8f-61d0-406a-aa4b-a658fdf27034
       metadata:
         rax-heat: { get_param: "OS::stack_id" }
         stack-name: { get_param: "OS::stack_name" }
